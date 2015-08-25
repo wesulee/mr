@@ -1,0 +1,10 @@
+*.exe
+*.o
+*.pyc
+*.zip
+*.ini
+mr
+build/dll/
+data/
+save/
+errors.txt
