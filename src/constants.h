@@ -17,6 +17,8 @@ namespace Constants {
 	constexpr char iniFileName[] = "mr.ini";
 	constexpr char saveFileExt[] = "txt";
 	constexpr std::size_t maxIndex = std::numeric_limits<std::size_t>::max();
+	// Console
+	constexpr bool ConsoleMilliseconds = true;
 	// CreatureBasic
 	constexpr unsigned int CrHPBarTicks = targetFPS * 5;	// ticks after damaged bar drawn
 	// CreatureHealthBar

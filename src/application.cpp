@@ -1,4 +1,5 @@
 #include "application.h"
+#include "console.h"
 #include "game.h"
 #include "game_data.h"	// exitCode
 #include "settings.h"
@@ -16,6 +17,7 @@ Application::~Application() {
 
 
 int Application::run() {
+	Console::start();
 	doRun();
 	return GameData::instance().exitCode;
 }
