@@ -14,6 +14,21 @@ Uint32 SDL::userEventType = std::numeric_limits<Uint32>::max();
 bool SDL::targetTextureSupport = false;
 
 
+namespace SDLHelper {
+	constexpr char rendererFlag_SOFTWARE[] = "SOFTWARE";
+	constexpr char rendererFlag_ACCELERATED[] = "ACCELERATED";
+	constexpr char rendererFlag_PRESENTVSYNC[] = "PRESENTVSYNC";
+	constexpr char rendererFlag_TARGETTEXTURE[] = "TARGETTEXTURE";
+
+	inline
+	void appendRendererFlagString(std::string& str, const char* flagName) {
+		if (!str.empty())
+			str += ' ';
+		str += flagName;
+	}
+}
+
+
 bool SDL::init() {
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) != 0) {
 		logError("SDL_Init");
@@ -151,6 +166,21 @@ void SDL::freeNull(SDL_Texture* tex) {
 }
 
 
+std::string SDL::rendererFlagsToString(const Uint32 flags) {
+	using namespace SDLHelper;
+	std::string str;
+	if (flags & SDL_RENDERER_SOFTWARE)
+		appendRendererFlagString(str, rendererFlag_SOFTWARE);
+	if (flags & SDL_RENDERER_ACCELERATED)
+		appendRendererFlagString(str, rendererFlag_ACCELERATED);
+	if (flags & SDL_RENDERER_PRESENTVSYNC)
+		appendRendererFlagString(str, rendererFlag_PRESENTVSYNC);
+	if (flags & SDL_RENDERER_TARGETTEXTURE)
+		appendRendererFlagString(str, rendererFlag_TARGETTEXTURE);
+	return str;
+}
+
+
 Uint32 SDL::mapRGB(const SDL_PixelFormat* format, const Color& c) {
 	return SDL_MapRGB(format, c.R, c.G, c.B);
 }
@@ -223,6 +253,48 @@ void SDL::glyphMetrics(TTF_Font* f, Uint16 c, int* minX, int* maxX, int* minY, i
 void SDL::setAlpha(SDL_Texture* tex, const Uint8 alpha) {
 	if (SDL_SetTextureAlphaMod(tex, alpha) != 0)
 		logAndExit(SDLError{"texture alpha mod failure", SDLFunc::SDL_SetTextureAlphaMod});
+}
+
+
+SDL_Window* SDL::createWindow(const char* title, const int x, const int y, const int w, const int h, const Uint32 flags) {
+	SDL_Window* window = SDL_CreateWindow(title, x, y, w, h, flags);
+	if (window == nullptr)
+		logAndExit(SDLError{"create window failure", SDLFunc::SDL_CreateWindow});
+	return window;
+}
+
+
+SDL_Renderer* SDL::createRenderer(SDL_Window* w, const int i, const Uint32 flags) {
+	SDL_Renderer* renderer = SDL_CreateRenderer(w, i, flags);
+	if (renderer == nullptr)
+		logAndExit(SDLError{"create renderer failure", SDLFunc::SDL_CreateRenderer});
+	return renderer;
+}
+
+
+int SDL::getNumRenderDrivers() {
+	const int n = SDL_GetNumRenderDrivers();
+	if (n < 1)
+		logAndExit(SDLError{"unable to get number of render drivers", SDLFunc::SDL_GetNumRenderDrivers});
+	return n;
+}
+
+
+void SDL::getRenderDriverInfo(const int i, SDL_RendererInfo* info) {
+	if (SDL_GetRenderDriverInfo(i, info) != 0)
+		logAndExit(SDLError{"unable to get render driver info", SDLFunc::SDL_GetRenderDriverInfo});
+}
+
+
+void SDL::getRendererInfo(SDL_Renderer* renderer, SDL_RendererInfo* info) {
+	if (SDL_GetRendererInfo(renderer, info) != 0)
+		logAndExit(SDLError{"unable to get renderer info", SDLFunc::SDL_GetRendererInfo});
+}
+
+
+void SDL::setRenderDrawBlendMode(SDL_Renderer* renderer, const SDL_BlendMode mode) {
+	if (SDL_SetRenderDrawBlendMode(renderer, mode) != 0)
+		logAndExit(SDLError{"unable to set blend mode", SDLFunc::SDL_SetRenderDrawBlendMode});
 }
 
 

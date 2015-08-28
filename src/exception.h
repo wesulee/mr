@@ -3,18 +3,21 @@
 #include <string>
 
 
-class Exception;
-
-
 namespace SDLFunc {
+	constexpr char SDL_CreateRenderer[] = "SDL_CreateRenderer";
 	constexpr char SDL_CreateRGBSurface[] = "SDL_CreateRGBSurface";
 	constexpr char SDL_CreateTextureFromSurface[] = "SDL_CreateTextureFromSurface";
+	constexpr char SDL_CreateWindow[] = "SDL_CreateWindow";
+	constexpr char SDL_GetNumRenderDrivers[] = "SDL_GetNumRenderDrivers";
+	constexpr char SDL_GetRenderDriverInfo[] = "SDL_GetRenderDriverInfo";
+	constexpr char SDL_GetRendererInfo[] = "SDL_GetRendererInfo";
 	constexpr char SDL_LoadBMP[] = "SDL_LoadBMP";
 	constexpr char SDL_QueryTexture[] = "SDL_QueryTexture";
 	constexpr char SDL_RegisterEvents[] = "SDL_RegisterEvents";
 	constexpr char SDL_RenderReadPixels[] = "SDL_RenderReadPixels";
 	constexpr char SDL_RenderSetClipRect[] = "SDL_RenderSetClipRect";
 	constexpr char SDL_RenderSetViewport[] = "SDL_RenderSetViewport";
+	constexpr char SDL_SetRenderDrawBlendMode[] = "SDL_SetRenderDrawBlendMode";
 	constexpr char SDL_SetTextureAlphaMod[] = "SDL_SetTextureAlphaMod";
 	constexpr char TTF_GlyphMetrics[] = "TTF_GlyphMetrics";
 	constexpr char TTF_RenderText_[] = "TTF_RenderText_*";
@@ -22,6 +25,8 @@ namespace SDLFunc {
 }
 
 
+// forward declarations
+class Exception;
 void logAndExit(const Exception&);
 
 

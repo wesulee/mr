@@ -7,6 +7,12 @@
 class Color;
 
 
+namespace SDLHintValue {
+	constexpr char TRUE[] = "1";
+	constexpr char FALSE[] = "0";
+}
+
+
 class SDL {
 public:
 	enum class Flip {HORIZ, VERT, HORIZ_VERT};
@@ -25,6 +31,7 @@ public:
 	static void free(SDL_Texture*);
 	static void freeNull(SDL_Surface*);
 	static void freeNull(SDL_Texture*);
+	static std::string rendererFlagsToString(const Uint32);
 	static Uint32 mapRGB(const SDL_PixelFormat*, const Color&);
 	static Uint32 mapRGBA(const SDL_PixelFormat*, const Color&, const Uint8);
 	static void clearEvents(void);
@@ -37,6 +44,12 @@ public:
 	static void queryTexture(SDL_Texture*, Uint32*, int*, int*, int*);
 	static void glyphMetrics(TTF_Font*, Uint16, int*, int*, int*, int*, int*);
 	static void setAlpha(SDL_Texture*, const Uint8);
+	static SDL_Window* createWindow(const char*, const int, const int, const int, const int, const Uint32);
+	static SDL_Renderer* createRenderer(SDL_Window*, const int, const Uint32);
+	static int getNumRenderDrivers(void);
+	static void getRenderDriverInfo(const int, SDL_RendererInfo*);
+	static void getRendererInfo(SDL_Renderer*, SDL_RendererInfo*);
+	static void setRenderDrawBlendMode(SDL_Renderer*, const SDL_BlendMode);
 
 	static SDL_Window* window;
 	static SDL_Renderer* renderer;
