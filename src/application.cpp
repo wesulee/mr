@@ -26,7 +26,7 @@ int Application::run() {
 void Application::doRun() {
 	if (settings->exitFlag)
 		return;
-	if (!Game::init(settings->rendererFlags()))
+	if (!Game::init(*settings))
 		return;
 
 	{

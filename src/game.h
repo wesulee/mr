@@ -4,7 +4,6 @@
 #include "event_manager.h"
 #include "resource_manager.h"
 #include "state_manager.h"
-#include <cstdint>
 
 
 class Settings;
@@ -14,7 +13,7 @@ class Game {
 public:
 	Game(Settings*&);
 	~Game() = default;
-	static bool init(const uint32_t);
+	static bool init(const Settings&);
 	static void quit(void);
 	void run(void);
 private:

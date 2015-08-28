@@ -1,4 +1,5 @@
 #include "game.h"
+#include "console.h"
 #include "constants.h"
 #include "game_data.h"
 #include "game_state.h"
@@ -6,6 +7,7 @@
 #include "sdl_helper.h"
 #include "settings.h"
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 
 
@@ -29,45 +31,53 @@ Game::Game(Settings*& settings) {
 }
 
 
-bool Game::init(const uint32_t renderFlags = 0) {
+bool Game::init(const Settings& settings) {
 	if (!SDL::init())
 		return false;
 
 	// init game components
 	InputHandler::init();
 
-	SDL::window = SDL_CreateWindow(
+	SDL::window = SDL::createWindow(
 		"mr", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		Constants::windowWidth, Constants::windowHeight, SDL_WINDOW_SHOWN
 	);
-	if (SDL::window == nullptr) {
-		SDL::logError("Game::init CreateWindow");
-		return false;
-	}
 
-	SDL::renderer = SDL_CreateRenderer(SDL::window, -1, renderFlags);
-	if (SDL::renderer == nullptr) {
-		SDL::logError("Game::init CreateRenderer");
-		return false;
-	}
-
-	// set target texture support flag
+	// Create renderer
 	SDL_RendererInfo renInfo;
-	if (SDL_GetRendererInfo(SDL::renderer, &renInfo) != 0) {
-		SDL::logError("Game::init SDL_GetRendererInfo");
-		return false;
+	auto rendererPref = settings.getRendererPref();
+	int rendererIndex = -1;		// default value
+	SDL_SetHintWithPriority(	// set vsync preference
+		SDL_HINT_RENDER_VSYNC,
+		rendererPref.second ? SDLHintValue::TRUE : SDLHintValue::FALSE,
+		SDL_HINT_OVERRIDE
+	);
+	if (!rendererPref.first.empty()) {
+		// preference is set, search for renderer
+		const int availDrivers = SDL::getNumRenderDrivers();
+		for (int i = 0; i < availDrivers; ++i) {
+			SDL::getRenderDriverInfo(i, &renInfo);
+			if (std::strcmp(rendererPref.first.c_str(), renInfo.name) == 0) {
+				rendererIndex = i;
+				break;
+			}
+		}
+		if (rendererIndex == -1) {
+			Console::begin() << "The renderer \"" << rendererPref.first
+			                 << "\" is not available. Will use default renderer instead." << std::endl;
+		}
 	}
-	#ifndef NDEBUG
-	std::cout << "Using SDL renderer: " << renInfo.name << std::endl;
-	#endif
-	SDL::targetTextureSupport = renInfo.flags & SDL_RENDERER_TARGETTEXTURE;
+	SDL::renderer = SDL::createRenderer(SDL::window, rendererIndex, 0);
+	SDL::getRendererInfo(SDL::renderer, &renInfo);
+	std::string rendererFlags = SDL::rendererFlagsToString(renInfo.flags);
+	if (rendererFlags.empty())
+		rendererFlags = "none";
+	Console::begin() << "renderer: \"" << renInfo.name << "\" flags: " << rendererFlags << std::endl;
+	// set target texture support flag
+	SDL::targetTextureSupport = ((renInfo.flags & SDL_RENDERER_TARGETTEXTURE) != 0);
 	if (!SDL::targetTextureSupport)
-		std::cout << "SDL_RENDERER_TARGETTEXTURE not available." << std::endl;
-
-	if (SDL_SetRenderDrawBlendMode(SDL::renderer, SDL_BLENDMODE_BLEND) != 0) {
-		SDL::logError("Game::init SDL_SetRenderDrawBlendMode");
-		return false;
-	}
+		Console::begin() << "Warning: TARGETTEXTURE not available." << std::endl;
+	SDL::setRenderDrawBlendMode(SDL::renderer, SDL_BLENDMODE_BLEND);
 	return true;
 }
 
@@ -110,13 +120,13 @@ void Game::run() {
 
 void Game::draw() {
 	stateManager.top()->draw(canvas);
-	#if defined(DEBUG_MOUSE_POS) && DEBUG_MOUSE_POS
-		auto oldColor = canvas.getColorState();
-		const int x = GameData::instance().inputHandler->mX();
-		const int y = GameData::instance().inputHandler->mY();
-		canvas.setColor(DEBUG_MOUSE_POS_COLOR, SDL_ALPHA_OPAQUE);
-		canvas.fillRect(x - DEBUG_MOUSE_POS_SZ, y, (DEBUG_MOUSE_POS_SZ * 2) + 1, 1);	// horiz
-		canvas.fillRect(x, y - DEBUG_MOUSE_POS_SZ, 1, (DEBUG_MOUSE_POS_SZ * 2) + 1);	// vert
-		canvas.setColorState(oldColor);
-	#endif
+#if defined(DEBUG_MOUSE_POS) && DEBUG_MOUSE_POS
+	auto oldColor = canvas.getColorState();
+	const int x = GameData::instance().inputHandler->mX();
+	const int y = GameData::instance().inputHandler->mY();
+	canvas.setColor(DEBUG_MOUSE_POS_COLOR, SDL_ALPHA_OPAQUE);
+	canvas.fillRect(x - DEBUG_MOUSE_POS_SZ, y, (DEBUG_MOUSE_POS_SZ * 2) + 1, 1);	// horiz
+	canvas.fillRect(x, y - DEBUG_MOUSE_POS_SZ, 1, (DEBUG_MOUSE_POS_SZ * 2) + 1);	// vert
+	canvas.setColorState(oldColor);
+#endif // DEBUG_MOUSE_POS
 }

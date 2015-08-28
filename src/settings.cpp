@@ -137,17 +137,19 @@ void procImmediateArgs(po::variables_map& vm) {
 void procIni(Settings& settings) {
 	using namespace SettingsSettings;
 	IniParser::ValueMap iniMap = IniParser::readFile(settings.rootPath + Constants::iniFileName);
-	auto find = iniMap.find("DataDir");
-	if (find != iniMap.end())
-		settings.dataPath = find->second;
+	auto it = iniMap.find("DataDir");
+	if (it != iniMap.end())
+		settings.dataPath = it->second;
 	else
 		settings.dataPath = defaultDataDir;
-	find = iniMap.find("SaveDir");
-	if (find != iniMap.end())
-		settings.savePath = find->second;
+	it = iniMap.find("SaveDir");
+	if (it != iniMap.end())
+		settings.savePath = it->second;
+	it = iniMap.find("Renderer");
+	if (it != iniMap.end())
+		settings.renderer = it->second;
 	setFlag(iniMap, "SaveDirAbs", settings.flags, toIndex(Index::SAVEDIRABS));
 	setFlag(iniMap, "Vsync", settings.flags, toIndex(Index::VSYNC));
-	setFlag(iniMap, "SoftwareRenderer", settings.flags, toIndex(Index::SOFTWARERENDERER));
 	setFlag(iniMap, "DisplayFPS", settings.flags, toIndex(Index::DISPLAYFPS));
 	setFlag(iniMap, "PauseFocusLost", settings.flags, toIndex(Index::PAUSEFOCUSLOST));
 }
@@ -155,9 +157,6 @@ void procIni(Settings& settings) {
 
 void procArguments(po::variables_map& vm, Settings& settings) {
 	using namespace SettingsSettings;
-	if (vm.count("vsync")) {
-		settings.flags.set(toIndex(Index::SOFTWARERENDERER), vm["vsync"].as<bool>());
-	}
 	// NOTE: savedir argument is treated as absolute path
 	if (vm.count("savedir")) {
 		settings.flags.set(toIndex(Index::SAVEDIRABS));
@@ -220,24 +219,16 @@ void printDrivers(std::ostream& os) {
 		return;
 	}
 	SDL_RendererInfo info;
+	std::string flags;
 	for (int i = 0; i < available; ++i) {
 		if (SDL_GetRenderDriverInfo(i, &info) != 0) {
 			printSDLError(os);
 			return;
 		}
-		os << "Index: " << i << " name: " << info.name;
-		if (info.flags != 0) {
-			os << " flags:";
-			if (info.flags & SDL_RENDERER_SOFTWARE)
-				os << " SOFTWARE";
-			if (info.flags & SDL_RENDERER_ACCELERATED)
-				os << " ACCELERATED";
-			if (info.flags & SDL_RENDERER_PRESENTVSYNC)
-				os << " PRESENTVSYNC";
-			if (info.flags & SDL_RENDERER_TARGETTEXTURE)
-				os << " TARGETTEXTURE";
-		}
-		os << std::endl;
+		flags = SDL::rendererFlagsToString(info.flags);
+		if (flags.empty())
+			flags = "none";
+		os << "index: " << i << " name: \"" << info.name << "\" flags: " << flags << std::endl;
 	}
 }
 
@@ -259,7 +250,6 @@ Settings::Settings(int argc, char** argv) {
 	using namespace SettingsHelper;
 	SET_FLAG(flags, toIndex(Index::SAVEDIRABS), fSaveDirAbs);
 	SET_FLAG(flags, toIndex(Index::VSYNC), fVsync);
-	SET_FLAG(flags, toIndex(Index::SOFTWARERENDERER), fSoftwareRenderer);
 	SET_FLAG(flags, toIndex(Index::DISPLAYFPS), fDisplayFPS);
 	SET_FLAG(flags, toIndex(Index::PAUSEFOCUSLOST), fPauseFocusLost);
 	po::variables_map vm;
@@ -284,14 +274,10 @@ Settings::Settings(int argc, char** argv) {
 }
 
 
-uint32_t Settings::rendererFlags() const {
+std::pair<std::string, bool> Settings::getRendererPref() const {
 	using namespace SettingsSettings;
-	uint32_t f = 0;
-	if (flags.test(toIndex(Index::VSYNC)))
-		f |= SDL_RENDERER_PRESENTVSYNC;
-	if (flags.test(toIndex(Index::SOFTWARERENDERER)))
-		f |= SDL_RENDERER_SOFTWARE;
-	else
-		f |= SDL_RENDERER_ACCELERATED;
-	return f;
+	std::pair<std::string, bool> ret;
+	ret.first = renderer;
+	ret.second = flags.test(toIndex(Index::VSYNC));
+	return ret;
 }

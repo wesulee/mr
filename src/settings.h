@@ -1,20 +1,20 @@
 #pragma once
 
 #include <bitset>
-#include <cstdint>
 #include <string>
+#include <utility>
 
 
+// various true/false settings, with defaults
 namespace SettingsSettings {
 	typedef unsigned int index_type;
 	// indices of bitset
-	enum class Index : index_type {SAVEDIRABS=0, VSYNC, SOFTWARERENDERER, DISPLAYFPS, PAUSEFOCUSLOST};
+	enum class Index : index_type {SAVEDIRABS=0, VSYNC, DISPLAYFPS, PAUSEFOCUSLOST};
 	constexpr char defaultDataDir[] = "data";
 	constexpr char defaultSaveDir[] = "save";
 	// default flag values
 	constexpr bool fSaveDirAbs = false;
 	constexpr bool fVsync = true;
-	constexpr bool fSoftwareRenderer = false;
 	constexpr bool fDisplayFPS = false;
 	constexpr bool fPauseFocusLost = true;
 
@@ -31,12 +31,13 @@ public:
 	Settings(int, char**);
 	~Settings() = default;
 	bool getFlag(const SettingsSettings::Index) const;
-	uint32_t rendererFlags(void) const;
+	std::pair<std::string, bool> getRendererPref(void) const;
 
 	// absolute paths
 	std::string rootPath;
 	std::string dataPath;
 	std::string savePath;
+	std::string renderer;	// name of renderer to use
 	std::bitset<8> flags;
 	bool exitFlag = false;	// exit immediately after constructor?
 };
