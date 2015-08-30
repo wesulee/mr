@@ -17,8 +17,9 @@ Application::~Application() {
 
 
 int Application::run() {
-	Console::start();
+	Console::startTimer();
 	doRun();
+	Console::flush();
 	return GameData::instance().exitCode;
 }
 

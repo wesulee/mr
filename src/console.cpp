@@ -12,12 +12,11 @@ std::ostream& Console::begin() {
 	std::chrono::milliseconds runtime = std::chrono::duration_cast<decltype(runtime)>(
 		std::chrono::steady_clock::now() - startTime
 	);
-	auto runtimeMS = runtime.count();
-	auto minutes = (runtimeMS / (1000 * 60));	// total minutes, rounded down
-	auto seconds = ((runtimeMS - (minutes * (1000 * 60))) / 1000);	// remaining seconds, rounded down
-	auto milliseconds = (runtimeMS - (seconds * 1000));		// remaining milliseconds
-	os << '[' << std::setfill('0') << std::setw(2) << minutes << ':'
-	   << std::setfill('0') << std::setw(2) << seconds;
+	const auto runtimeMS = runtime.count();
+	const auto minutes = (runtimeMS / (1000 * 60));	// total minutes, rounded down
+	const auto seconds = ((runtimeMS - (minutes * (60 * 1000))) / 1000);	// remaining seconds, rounded down
+	const auto milliseconds = (runtimeMS - (seconds * 1000) - (minutes * 60 * 1000));		// remaining milliseconds
+	os << '[' << minutes << ':' << std::setfill('0') << std::setw(2) << seconds;
 	if (Constants::ConsoleMilliseconds)
 		os << '.' << std::setfill('0') << std::setw(3) << milliseconds;
 	os << ']' << ' ';
@@ -25,6 +24,6 @@ std::ostream& Console::begin() {
 }
 
 
-void Console::start() {
+void Console::startTimer() {
 	startTime = std::chrono::steady_clock::now();
 }
