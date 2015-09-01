@@ -14,10 +14,10 @@ std::string JSONReader::errorMsg = "";
 
 
 #ifndef NDEBUG
-	#define VALID_ARRAY(iter1,iter2) validArray(iter1, iter2)
+#define VALID_ARRAY(iter1,iter2) validArray(iter1, iter2)
 #else
-	#define VALID_ARRAY(iter1,iter2) true
-#endif
+#define VALID_ARRAY(iter1,iter2) true
+#endif // NDEBUG
 
 
 template<class T>	// T iterator
@@ -161,12 +161,12 @@ std::shared_ptr<SpriteSheetData> JSONReader::runLoadSpriteSheet(const std::strin
 				break;
 			}
 		}
-		#ifndef NDEBUG
-			if (data->sprites.find(tmpStr) != data->sprites.end()) {
-				pErr.setDetails("sprite " + tmpStr + " is not unique");
-				throw pErr;
-			}
-		#endif
+#ifndef NDEBUG
+		if (data->sprites.find(tmpStr) != data->sprites.end()) {
+			pErr.setDetails("sprite " + tmpStr + " is not unique");
+			throw pErr;
+		}
+#endif // NDEBUG
 		data->sprites.emplace(tmpStr, tmpRect);
 		++i;
 	}

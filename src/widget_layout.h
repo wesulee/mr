@@ -432,13 +432,13 @@ void AbstractLayout<T>::setSpacing(const int n) {
 
 template<class T>
 void AbstractLayout<T>::draw(Canvas& can) {
-	#if defined(DEBUG_WL_BOUNDS) && DEBUG_WL_BOUNDS
-		LayoutHelper::fillBounds(can, bounds);
-		LayoutHelper::drawWidgets(can, contentBounds, widgets);
-		LayoutHelper::drawBounds(can, bounds);
-	#else
-		LayoutHelper::drawWidgets(can, contentBounds, widgets);
-	#endif
+#if defined(DEBUG_WL_BOUNDS) && DEBUG_WL_BOUNDS
+	LayoutHelper::fillBounds(can, bounds);
+	LayoutHelper::drawWidgets(can, contentBounds, widgets);
+	LayoutHelper::drawBounds(can, bounds);
+#else
+	LayoutHelper::drawWidgets(can, contentBounds, widgets);
+#endif // DEBUG_WL_BOUNDS
 }
 
 
@@ -479,6 +479,8 @@ template<class T>
 void AbstractLayout<T>::_requestResize(Widget* w, const IntPair&) {
 	assert(LayoutHelper::checkExists(widgets, w));
 	//! TODO not implemented
+	// This does not need to be implemented if widgets are created in the correct order
+	//   and no dynamic resizing is needed during a child's lifetime.
 	(void)w;
 	assert(false);
 }

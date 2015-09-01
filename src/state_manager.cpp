@@ -19,41 +19,41 @@
 namespace StMHelper {
 
 static void enter(GameState* gs) {
-	#if defined(DEBUG_StM_GS) && DEBUG_StM_GS
-		DEBUG_OS << DEBUG_StM_PREPEND << "enter " << toString(gs->getType()) << std::endl;
-	#endif
+#if defined(DEBUG_StM_GS) && DEBUG_StM_GS
+	DEBUG_OS << DEBUG_StM_PREPEND << "enter " << toString(gs->getType()) << std::endl;
+#endif
 	gs->entered();
 }
 
 
 static void leave(GameState* gs, const StateType st, std::shared_ptr<StateContext> sc) {
-	#if defined(DEBUG_StM_GS) && DEBUG_StM_GS
-		DEBUG_OS << DEBUG_StM_PREPEND << "leave " << toString(gs->getType()) << " for " << toString(st) << std::endl;
-	#endif
+#if defined(DEBUG_StM_GS) && DEBUG_StM_GS
+	DEBUG_OS << DEBUG_StM_PREPEND << "leave " << toString(gs->getType()) << " for " << toString(st) << std::endl;
+#endif
 	gs->leaving(st, sc);
 }
 
 
 static void obscure(GameState* gs, const StateType st, std::shared_ptr<StateContext> sc) {
-	#if defined(DEBUG_StM_GS) && DEBUG_StM_GS
-		DEBUG_OS << DEBUG_StM_PREPEND << "obscure " << toString(gs->getType()) << " to " << toString(st) << std::endl;
-	#endif
+#if defined(DEBUG_StM_GS) && DEBUG_StM_GS
+	DEBUG_OS << DEBUG_StM_PREPEND << "obscure " << toString(gs->getType()) << " to " << toString(st) << std::endl;
+#endif
 	gs->obscuring(st, sc);
 }
 
 
 static void reveal(GameState* gs, std::shared_ptr<StateContext> sc) {
-	#if defined(DEBUG_StM_GS) && DEBUG_StM_GS
-		DEBUG_OS << DEBUG_StM_PREPEND << "reveal " << toString(gs->getType()) << std::endl;
-	#endif
+#if defined(DEBUG_StM_GS) && DEBUG_StM_GS
+	DEBUG_OS << DEBUG_StM_PREPEND << "reveal " << toString(gs->getType()) << std::endl;
+#endif
 	gs->revealed(sc);
 }
 
 
 static void deleteGS(GameState* gs) {
-	#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
-		DEBUG_OS << DEBUG_StM_PREPEND << "delete " << toString(gs->getType()) << std::endl;
-	#endif
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+	DEBUG_OS << DEBUG_StM_PREPEND << "delete " << toString(gs->getType()) << std::endl;
+#endif
 	delete gs;
 }
 
@@ -76,9 +76,9 @@ T stackGet(std::stack<T>& stack, const std::size_t n) {
 
 // returns item popped
 static GameState* stackPop(std::stack<GameState*>& stack) {
-	#if defined(DEBUG_StM_STACK) && DEBUG_StM_STACK
-		DEBUG_OS << DEBUG_StM_PREPEND << "stack pop " << toString(stack.top()->getType()) << std::endl;
-	#endif
+#if defined(DEBUG_StM_STACK) && DEBUG_StM_STACK
+	DEBUG_OS << DEBUG_StM_PREPEND << "stack pop " << toString(stack.top()->getType()) << std::endl;
+#endif
 	GameState* gs = stack.top();
 	stack.pop();
 	return gs;
@@ -86,9 +86,9 @@ static GameState* stackPop(std::stack<GameState*>& stack) {
 
 
 static void stackPush(std::stack<GameState*>& stack, GameState* gs) {
-	#if defined(DEBUG_StM_STACK) && DEBUG_StM_STACK
-		DEBUG_OS << DEBUG_StM_PREPEND << "stack push " << toString(gs->getType()) << std::endl;
-	#endif
+#if defined(DEBUG_StM_STACK) && DEBUG_StM_STACK
+	DEBUG_OS << DEBUG_StM_PREPEND << "stack push " << toString(gs->getType()) << std::endl;
+#endif
 	stack.push(gs);
 }
 
@@ -356,10 +356,11 @@ GameState* StateManager::newGameState(const StateType st, std::shared_ptr<StateC
 		gs = nullptr;
 		break;
 	}
-	if (gs == nullptr)
+	if (gs == nullptr) {
 		logAndExit(RuntimeError{"StateManager::newGameState", "unexpected nullptr"});
-	#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
-		DEBUG_OS << DEBUG_StM_PREPEND << "new " << toString(gs->getType()) << std::endl;
-	#endif
+	}
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+	DEBUG_OS << DEBUG_StM_PREPEND << "new " << toString(gs->getType()) << std::endl;
+#endif
 	return gs;
 }

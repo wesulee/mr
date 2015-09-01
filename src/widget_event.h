@@ -135,6 +135,7 @@ bool WEMouseAutoUpdate::inBounds() const {
 #ifndef NDEBUG
 #include <ostream>
 
+
 std::ostream& operator<<(std::ostream&, const WidgetEventMouseMove&);
 std::ostream& operator<<(std::ostream&, const WidgetEventMousePress&);
 std::ostream& operator<<(std::ostream&, const WidgetEventMouseRelease&);
@@ -142,4 +143,4 @@ std::ostream& operator<<(std::ostream&, const WidgetEventMouseClick&);
 std::ostream& operator<<(std::ostream&, const WidgetEventTextInput&);
 std::ostream& operator<<(std::ostream&, const WidgetEventTextEdit&);
 std::ostream& operator<<(std::ostream&, const WidgetEventTextDelete&);
-#endif
+#endif // NDEBUG

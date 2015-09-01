@@ -77,17 +77,15 @@ PlayerHealthBar::~PlayerHealthBar() {
 
 void PlayerHealthBar::draw(Canvas& can) {
 	can.draw(*text, Constants::PHealthPosX, Constants::PHealthPosY);
-	#ifndef NDEBUG
-		auto oldColor = can.getColor();
-		auto oldAlpha = can.getAlpha();
-		can.setColor(COLOR_RED, SDL_ALPHA_OPAQUE / 3);
-		can.fillRect(
-			Constants::PHealthPosX, Constants::PHealthPosY,
-			text->getDrawWidth(), text->getDrawHeight()
-		);
-		can.setColor(oldColor, oldAlpha);
-	#endif
-
+#ifndef NDEBUG
+	auto oldColor = can.getColorState();
+	can.setColor(COLOR_RED, SDL_ALPHA_OPAQUE / 3);
+	can.fillRect(
+		Constants::PHealthPosX, Constants::PHealthPosY,
+		text->getDrawWidth(), text->getDrawHeight()
+	);
+	can.setColorState(oldColor);
+#endif // NDEBUG
 	can.setColor(barColor[index], SDL_ALPHA_OPAQUE);
 	can.fillRect(barX, barY, drawWidth, Constants::PHealthBarHeight);
 }

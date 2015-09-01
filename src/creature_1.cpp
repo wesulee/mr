@@ -76,14 +76,14 @@ bool Creature1::update() {
 
 void Creature1::draw(Canvas& can) {
 	can.draw(*curSpr, static_cast<int>(pos.x), static_cast<int>(pos.y));
-	#ifndef NDEBUG
-		if (state == CreatureState::ATTACKING) {
-			auto oldColor = can.getColorState();
-			can.setColor(COLOR_RED, SDL_ALPHA_OPAQUE / 2);
-			can.fillRect(attackRect);
-			can.setColorState(oldColor);
-		}
-	#endif
+#ifndef NDEBUG
+	if (state == CreatureState::ATTACKING) {
+		auto oldColor = can.getColorState();
+		can.setColor(COLOR_RED, SDL_ALPHA_OPAQUE / 2);
+		can.fillRect(attackRect);
+		can.setColorState(oldColor);
+	}
+#endif // NDEBUG
 	if (shouldDrawHPBar()) {
 		healthBar.draw(
 			can,		// all sprites same size, so pick arbitrarily

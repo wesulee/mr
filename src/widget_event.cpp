@@ -205,45 +205,45 @@ std::pair<int, int> WEMouseAutoUpdate::getPos() const {
 
 std::ostream& operator<<(std::ostream& os, const WidgetEventMouseMove& e) {
 	(void)e;
-	#if defined(DEBUG_WE_MOUSE_MOVE) && DEBUG_WE_MOUSE_MOVE
-		os << DEBUG_WE_PREPEND << "MOUSE_MOVE x=" << e.x << " y=" << e.y;
-	#endif
+#if defined(DEBUG_WE_MOUSE_MOVE) && DEBUG_WE_MOUSE_MOVE
+	os << DEBUG_WE_PREPEND << "MOUSE_MOVE x=" << e.x << " y=" << e.y;
+#endif
 	return os;
 }
 
 
 std::ostream& operator<<(std::ostream& os, const WidgetEventMousePress& e) {
 	(void)e;
-	#if defined(DEBUG_WE_MOUSE_PRESS) && DEBUG_WE_MOUSE_PRESS
-		os << DEBUG_WE_PREPEND << "MOUSE_PRESS x=" << e.x << " y=" << e.y;
-	#endif
+#if defined(DEBUG_WE_MOUSE_PRESS) && DEBUG_WE_MOUSE_PRESS
+	os << DEBUG_WE_PREPEND << "MOUSE_PRESS x=" << e.x << " y=" << e.y;
+#endif
 	return os;
 }
 
 
 std::ostream& operator<<(std::ostream& os, const WidgetEventMouseRelease& e) {
 	(void)e;
-	#if defined(DEBUG_WE_MOUSE_RELEASE) && DEBUG_WE_MOUSE_RELEASE
-		os << DEBUG_WE_PREPEND << "MOUSE_RELEASE x=" << e.x << " y=" << e.y << " time=" << e.time;
-	#endif
+#if defined(DEBUG_WE_MOUSE_RELEASE) && DEBUG_WE_MOUSE_RELEASE
+	os << DEBUG_WE_PREPEND << "MOUSE_RELEASE x=" << e.x << " y=" << e.y << " time=" << e.time;
+#endif
 	return os;
 }
 
 
 std::ostream& operator<<(std::ostream& os, const WidgetEventMouseClick& e) {
 	(void)e;
-	#if defined(DEBUG_WE_MOUSE_CLICK) && DEBUG_WE_MOUSE_CLICK
-		os << DEBUG_WE_PREPEND << "MOUSE_CLICK x=" << e.x << " y=" << e.y;
-	#endif
+#if defined(DEBUG_WE_MOUSE_CLICK) && DEBUG_WE_MOUSE_CLICK
+	os << DEBUG_WE_PREPEND << "MOUSE_CLICK x=" << e.x << " y=" << e.y;
+#endif
 	return os;
 }
 
 
 std::ostream& operator<<(std::ostream& os, const WidgetEventTextInput& e) {
 	(void)e;
-	#if defined(DEBUG_WE_TEXT_INPUT) && DEBUG_WE_TEXT_INPUT
-		os << DEBUG_WE_PREPEND << "TEXT_INPUT text=\"" << e.text << "\"";
-	#endif
+#if defined(DEBUG_WE_TEXT_INPUT) && DEBUG_WE_TEXT_INPUT
+	os << DEBUG_WE_PREPEND << "TEXT_INPUT text=\"" << e.text << "\"";
+#endif
 	return os;
 }
 
@@ -257,10 +257,10 @@ std::ostream& operator<<(std::ostream& os, const WidgetEventTextEdit& e) {
 
 std::ostream& operator<<(std::ostream& os, const WidgetEventTextDelete& e) {
 	(void)e;
-	#if defined(DEBUG_WE_TEXT_DELETE) && DEBUG_WE_TEXT_DELETE
-		os << DEBUG_WE_PREPEND << "TEXT_DELETE dirLeft=" << e.dirLeft << " modifier=" << e.modifier;
-	#endif
+#if defined(DEBUG_WE_TEXT_DELETE) && DEBUG_WE_TEXT_DELETE
+	os << DEBUG_WE_PREPEND << "TEXT_DELETE dirLeft=" << e.dirLeft << " modifier=" << e.modifier;
+#endif
 	return os;
 }
 
-#endif	// NDEBUG
+#endif // NDEBUG

@@ -1,5 +1,4 @@
 #ifndef NDEBUG
-
 #include "state_type.h"
 #include <cassert>
 
@@ -37,4 +36,4 @@ std::string toString(const StateType st) {
 	return str;
 }
 
-#endif	// NDEBUG
+#endif // NDEBUG

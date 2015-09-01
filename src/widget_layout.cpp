@@ -10,16 +10,16 @@ void drawWidgets(Canvas& can, const SDL_Rect& viewport, std::vector<Widget*>& wi
 		can.setRelViewport(w->getBounds());
 		w->draw(can);
 		can.clearViewport();
-		#if defined(DEBUG_WL_CHILDBOUNDS) && DEBUG_WL_CHILDBOUNDS
-			auto oldColor = can.getColorState();
-			can.setColor(DEBUG_WL_CHILDBOUNDS_FILLCOLOR, getAlpha<DEBUG_WL_CHILDBOUNDS_FILLALPHA>());
-			can.fillRect(w->getBounds());
-			if (DEBUG_WL_CHILDBOUNDS_BORDER_SZ > 0) {
-				can.setColor(DEBUG_WL_CHILDBOUNDS_BORDERCOLOR, SDL_ALPHA_OPAQUE);
-				can.draw(w->getBounds(), DEBUG_WL_CHILDBOUNDS_BORDER_SZ);
-			}
-			can.setColorState(oldColor);
-		#endif
+#if defined(DEBUG_WL_CHILDBOUNDS) && DEBUG_WL_CHILDBOUNDS
+		auto oldColor = can.getColorState();
+		can.setColor(DEBUG_WL_CHILDBOUNDS_FILLCOLOR, getAlpha<DEBUG_WL_CHILDBOUNDS_FILLALPHA>());
+		can.fillRect(w->getBounds());
+		if (DEBUG_WL_CHILDBOUNDS_BORDER_SZ > 0) {
+			can.setColor(DEBUG_WL_CHILDBOUNDS_BORDERCOLOR, SDL_ALPHA_OPAQUE);
+			can.draw(w->getBounds(), DEBUG_WL_CHILDBOUNDS_BORDER_SZ);
+		}
+		can.setColorState(oldColor);
+#endif // DEBUG_WL_CHILDBOUNDS
 	}
 	can.clearViewport();
 }
@@ -32,7 +32,7 @@ void fillBounds(Canvas& can, const SDL_Rect& bounds) {
 	can.fillRect(0, 0, bounds.w, bounds.h);
 	can.setColorState(oldColor);
 }
-#endif
+#endif // NDEBUG
 
 
 #ifndef NDEBUG
@@ -50,7 +50,7 @@ void drawBounds(Canvas& can, const SDL_Rect& bounds) {
 		can.setColorState(oldColor);
 	}
 }
-#endif
+#endif // NDEBUG
 
 }	// namespace LayoutHelper
 

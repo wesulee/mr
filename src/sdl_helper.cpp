@@ -58,15 +58,15 @@ void SDL::logError(const std::string& msg) {
 
 SDL_Surface* SDL::newSurface24(const int w, const int h) {
 	Uint32 rmask, gmask, bmask, amask;
-	#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-		rmask = 0xFF000000;
-		gmask = 0x00FF0000;
-		bmask = 0x0000FF00;
-	#else
-		rmask = 0x000000FF;
-		gmask = 0x0000FF00;
-		bmask = 0x00FF0000;
-	#endif
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	rmask = 0xFF000000;
+	gmask = 0x00FF0000;
+	bmask = 0x0000FF00;
+#else
+	rmask = 0x000000FF;
+	gmask = 0x0000FF00;
+	bmask = 0x00FF0000;
+#endif
 	amask = 0x00000000;
 	return createSurface(w, h, 24, rmask, gmask, bmask, amask);
 }
@@ -74,17 +74,17 @@ SDL_Surface* SDL::newSurface24(const int w, const int h) {
 
 SDL_Surface* SDL::newSurface32(const int w, const int h) {
 	Uint32 rmask, gmask, bmask, amask;
-	#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-		rmask = 0xFF000000;
-		gmask = 0x00FF0000;
-		bmask = 0x0000FF00;
-		amask = 0x000000FF;
-	#else
-		rmask = 0x000000FF;
-		gmask = 0x0000FF00;
-		bmask = 0x00FF0000;
-		amask = 0xFF000000;
-	#endif
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	rmask = 0xFF000000;
+	gmask = 0x00FF0000;
+	bmask = 0x0000FF00;
+	amask = 0x000000FF;
+#else
+	rmask = 0x000000FF;
+	gmask = 0x0000FF00;
+	bmask = 0x00FF0000;
+	amask = 0xFF000000;
+#endif
 	return createSurface(w, h, 32, rmask, gmask, bmask, amask);
 }
 

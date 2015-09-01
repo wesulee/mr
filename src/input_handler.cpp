@@ -29,9 +29,9 @@ void InputHandler::startTextInput() {
 	if (!textInputEnabled) {
 		SDL_StartTextInput();
 		textInputEnabled = true;
-		#if defined(DEBUG_IH_TEXT_INPUT) && DEBUG_IH_TEXT_INPUT
-			DEBUG_OS << DEBUG_IH_PREPEND << "TextInput ENABLED" << std::endl;
-		#endif
+#if defined(DEBUG_IH_TEXT_INPUT) && DEBUG_IH_TEXT_INPUT
+		DEBUG_OS << DEBUG_IH_PREPEND << "TextInput ENABLED" << std::endl;
+#endif
 	}
 }
 
@@ -40,9 +40,9 @@ void InputHandler::stopTextInput() {
 	if (textInputEnabled) {
 		SDL_StopTextInput();
 		textInputEnabled = false;
-		#if defined(DEBUG_IH_TEXT_INPUT) && DEBUG_IH_TEXT_INPUT
-			DEBUG_OS << DEBUG_IH_PREPEND << "TextInput DISABLED" << std::endl;
-		#endif
+#if defined(DEBUG_IH_TEXT_INPUT) && DEBUG_IH_TEXT_INPUT
+		DEBUG_OS << DEBUG_IH_PREPEND << "TextInput DISABLED" << std::endl;
+#endif
 	}
 }
 
@@ -187,9 +187,8 @@ void InputHandler::processW(const SDL_Event& e) {
 			iter->second(keyEvent);
 		break;
 	case SDL_KEYUP:
-		if (textInputEnabled && ((e.key.keysym.sym == SDLK_BACKSPACE) || (e.key.keysym.sym == SDLK_DELETE))) {
+		if (textInputEnabled && ((e.key.keysym.sym == SDLK_BACKSPACE) || (e.key.keysym.sym == SDLK_DELETE)))
 			break;
-		}
 
 		keyEvent.key = e.key.keysym.sym;
 		keyEvent.pressed = false;
@@ -219,7 +218,7 @@ void InputHandler::processW(const SDL_Event& e) {
 
 
 void InputHandler::sendWidgetEvent() {
-	#ifndef NDEBUG
+#ifndef NDEBUG
 	std::stringstream ss;
 	switch (wEvent.type) {
 	case WidgetEventType::MOUSE_MOVE:
@@ -240,13 +239,13 @@ void InputHandler::sendWidgetEvent() {
 	std::string str = ss.str();
 	if (!str.empty())
 		DEBUG_OS << str << std::endl;
-	#endif
+#endif // NDEBUG
 	widgetCallback(wEvent);
 }
 
 
 void InputHandler::sendTextEvent() {
-	#ifndef NDEBUG
+#ifndef NDEBUG
 	std::stringstream ss;
 	switch (wEvent.type) {
 		case WidgetEventType::TEXT_INPUT:
@@ -264,7 +263,7 @@ void InputHandler::sendTextEvent() {
 	std::string str = ss.str();
 	if (!str.empty())
 		DEBUG_OS << str << std::endl;
-	#endif
+#endif // NDEBUG
 	assert(textInputWidget != nullptr);
 	textInputWidget->event(wEvent);
 }

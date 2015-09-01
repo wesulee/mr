@@ -117,9 +117,9 @@ Room::~Room() {
 
 void Room::draw(Canvas& can) {
 	can.draw(bgTex, &drawRect);
-	#if defined(DEBUG_ROOM_BLOCK) && DEBUG_ROOM_BLOCK
-		block.draw(can);
-	#endif
+#if defined(DEBUG_ROOM_BLOCK) && DEBUG_ROOM_BLOCK
+	block.draw(can);
+#endif
 }
 
 

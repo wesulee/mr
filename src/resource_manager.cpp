@@ -350,19 +350,19 @@ SpriteSheet* ResourceManager::loadSpriteSheet(const std::string& name) {
 	SpriteSheet* ss = new SpriteSheet{tex, name};
 	sheets[name] = ResourceCounter<SpriteSheet>{ss, 1};
 	// process sprites
-	#ifndef NDEBUG
-		// for checking bounds
-		int width = -1;
-		int height = -1;
-		SDL_QueryTexture(tex, nullptr, nullptr, &width, &height);
-	#endif
+#ifndef NDEBUG
+	// for checking bounds
+	int width = -1;
+	int height = -1;
+	SDL_QueryTexture(tex, nullptr, nullptr, &width, &height);
+#endif // NDEBUG
 	for (auto it = data->sprites.begin(); it != data->sprites.end(); ++it) {
-		#ifndef NDEBUG
-			if ((it->second.x + it->second.w > width) || (it->second.y + it->second.h > height)) {
-				// log if sprite boundary not within bounds, but keep processing
-				Logger::instance().log("ResourceManager::loadSpriteSheet " + name + ',' + it->first + " exceeds bounds");
-			}
-		#endif
+#ifndef NDEBUG
+		if ((it->second.x + it->second.w > width) || (it->second.y + it->second.h > height)) {
+			// log if sprite boundary not within bounds, but keep processing
+			Logger::instance().log("ResourceManager::loadSpriteSheet " + name + ',' + it->first + " exceeds bounds");
+		}
+#endif // NDEBUG
 		ss->add(it->first, it->second);
 	}
 	return ss;
@@ -372,14 +372,14 @@ SpriteSheet* ResourceManager::loadSpriteSheet(const std::string& name) {
 AnimatedSpriteSource* ResourceManager::loadAnimationUni(const std::map<std::string, std::string>& args) {
 	UniformAnimatedSpriteSource* src = new UniformAnimatedSpriteSource;
 	src->setImageName(args.at("img"));
-	#ifndef NDEBUG
-		std::string missing = checkMapKeysExists(args, {"img", "dur", "w", "h", "x", "y", "dx", "dy", "frames"});
-		if (!missing.empty()) {
-			Logger::instance().log("ResourceManager::loadAnimationUni missing argument " + missing);
-			delete src;
-			return nullptr;
-		}
-	#endif
+#ifndef NDEBUG
+	std::string missing = checkMapKeysExists(args, {"img", "dur", "w", "h", "x", "y", "dx", "dy", "frames"});
+	if (!missing.empty()) {
+		Logger::instance().log("ResourceManager::loadAnimationUni missing argument " + missing);
+		delete src;
+		return nullptr;
+	}
+#endif // NDEBUG
 	int tmpInt, tmpInt2;
 	int x, y, dx, dy, frames;
 	src->setTexture(autoLoadImage(args.at("img")));

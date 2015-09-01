@@ -10,8 +10,6 @@
 #include <cassert>
 #ifndef NDEBUG
 #include "constants.h"
-#include <cstdint>
-#include <iostream>
 #endif
 
 
@@ -161,12 +159,12 @@ void TextButton::draw(Canvas& can) {
 	can.fillRect(0, 0, contentBounds.w, contentBounds.h);
 	if (test()) {
 		can.draw(tex, &texBounds);
-		#if defined(DEBUG_TEXTBUTTON_DRAWTEXTURE) && DEBUG_TEXTBUTTON_DRAWTEXTURE
-			auto oldColor = can.getColorState();
-			can.setColor(DEBUG_TEXTBUTTON_DRAWTEXTURE_COLOR, getAlpha<DEBUG_TEXTBUTTON_DRAWTEXTURE_ALPHA>());
-			can.fillRect(texBounds);
-			can.setColorState(oldColor);
-		#endif
+#if defined(DEBUG_TEXTBUTTON_DRAWTEXTURE) && DEBUG_TEXTBUTTON_DRAWTEXTURE
+		auto oldColor = can.getColorState();
+		can.setColor(DEBUG_TEXTBUTTON_DRAWTEXTURE_COLOR, getAlpha<DEBUG_TEXTBUTTON_DRAWTEXTURE_ALPHA>());
+		can.fillRect(texBounds);
+		can.setColorState(oldColor);
+#endif // DEBUG_TEXTBUTTON_DRAWTEXTURE
 	}
 	can.clearViewport();
 }
@@ -303,12 +301,12 @@ void TextButton2::draw(Canvas& can) {
 			texture = nullptr;	// remove uninitialized warning...
 		}
 		can.draw(texture, &texBounds);
-		#if defined(DEBUG_TEXTBUTTON_DRAWTEXTURE) && DEBUG_TEXTBUTTON_DRAWTEXTURE
-			auto oldColor = can.getColorState();
-			can.setColor(DEBUG_TEXTBUTTON_DRAWTEXTURE_COLOR, getAlpha<DEBUG_TEXTBUTTON_DRAWTEXTURE_ALPHA>());
-			can.fillRect(texBounds);
-			can.setColorState(oldColor);
-		#endif
+#if defined(DEBUG_TEXTBUTTON_DRAWTEXTURE) && DEBUG_TEXTBUTTON_DRAWTEXTURE
+		auto oldColor = can.getColorState();
+		can.setColor(DEBUG_TEXTBUTTON_DRAWTEXTURE_COLOR, getAlpha<DEBUG_TEXTBUTTON_DRAWTEXTURE_ALPHA>());
+		can.fillRect(texBounds);
+		can.setColorState(oldColor);
+#endif // DEBUG_TEXTBUTTON_DRAWTEXTURE
 	}
 	can.clearViewport();
 }

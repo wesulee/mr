@@ -1,8 +1,6 @@
 #include "room_qtree.h"
 #include "constants.h"
 #include <cassert>
-
-
 #ifndef NDEBUG
 #include "canvas.h"
 
@@ -17,7 +15,7 @@ void QuadtreeRoom::draw(Canvas& can) {
 		can.setColor(DEBUG_ROOM_BLOCK_COLOR, getAlpha<DEBUG_ROOM_BLOCK_ALPHA>());
 		for (const auto& r : objects)
 			can.fillRect(r.getX(), r.getY(), r.width(), r.height());
-		#if DEBUG_ROOM_BOUNDS
+#if DEBUG_ROOM_BOUNDS
 		can.setColor(DEBUG_ROOM_BOUNDS_COLOR, getAlpha<DEBUG_ROOM_BOUNDS_ALPHA>());
 		can.fillRect(		// top
 			bounds.getX(),
@@ -43,11 +41,12 @@ void QuadtreeRoom::draw(Canvas& can) {
 			DEBUG_ROOM_BOUNDS_SIZE,
 			bounds.height()
 		);
-		#endif	// DEBUG_ROOM_BOUNDS
+#endif // DEBUG_ROOM_BOUNDS
 		can.setColorState(oldColor);
 	}
 }
-#endif	// NDEBUG
+
+#endif // NDEBUG
 
 
 void QuadtreeRoom::insert(const Rectangle& r) {
@@ -120,16 +119,16 @@ void QuadtreeRoom::split() {
 	// SE
 	qbounds.set(bounds.getX() + qwidth, bounds.getY() + qheight, width - qwidth, height - qheight);
 	nodes[QTREE_ROOM_SE].setBounds(qbounds);
-	#ifndef NDEBUG
-		// check split is correct
-		const int newArea = (
-			nodes[QTREE_ROOM_NW].getBounds().area()
-			+ nodes[QTREE_ROOM_NE].getBounds().area()
-			+ nodes[QTREE_ROOM_SW].getBounds().area()
-			+ nodes[QTREE_ROOM_SE].getBounds().area()
-		);
-		assert(bounds.area() == newArea);
-	#endif
+#ifndef NDEBUG
+	// check split is correct
+	const int newArea = (
+		nodes[QTREE_ROOM_NW].getBounds().area()
+		+ nodes[QTREE_ROOM_NE].getBounds().area()
+		+ nodes[QTREE_ROOM_SW].getBounds().area()
+		+ nodes[QTREE_ROOM_SE].getBounds().area()
+	);
+	assert(bounds.area() == newArea);
+#endif // NDEBUG
 	// move rects into new quads
 	for (const auto& r : objects) {
 		// no checking needed since new quad only inserts correct part of rect

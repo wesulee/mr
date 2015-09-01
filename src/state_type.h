@@ -6,6 +6,7 @@ enum class StateType {NONE, INIT, MENU, GAME, GAME_MENU, LOAD_MENU, SAVE_MENU, D
 #ifndef NDEBUG
 #include <string>
 
+
 std::string toString(const StateType);
 
-#endif
+#endif // NDEBUG

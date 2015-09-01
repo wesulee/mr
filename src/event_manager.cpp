@@ -9,7 +9,7 @@
 #include <string>
 
 static std::string EventToString(const SDL_Event&);
-#endif
+#endif // NDEBUG
 
 
 void EventManager::clearMousePresses() {
@@ -19,11 +19,11 @@ void EventManager::clearMousePresses() {
 
 void EventManager::process() {
 	while (SDL_PollEvent(&e)) {
-		#ifndef NDEBUG
+#ifndef NDEBUG
 		std::string eventStr = EventToString(e);
 		if (!eventStr.empty())
 			DEBUG_OS << eventStr << std::endl;
-		#endif
+#endif // NDEBUG
 		switch (e.type) {
 		case SDL_MOUSEMOTION:
 		case SDL_MOUSEBUTTONDOWN:
@@ -51,16 +51,18 @@ void EventManager::process() {
 // helper for EventToString
 static void MouseEventToString(std::stringstream& ss, const SDL_Event& e) {
 	if (e.type == SDL_MOUSEBUTTONDOWN) {
-		#if !defined(DEBUG_EVENT_MOUSEBUTTONDOWN) || !DEBUG_EVENT_MOUSEBUTTONDOWN
-			return;
-		#endif
+#if !defined(DEBUG_EVENT_MOUSEBUTTONDOWN) || !DEBUG_EVENT_MOUSEBUTTONDOWN
+		return;
+#else
 		ss << DEBUG_EVENT_PREPEND << "MOUSEBUTTON " << "DOWN";
+#endif // DEBUG_EVENT_MOUSEBUTTONDOWN
 	}
 	else if (e.type == SDL_MOUSEBUTTONUP) {
-		#if !defined(DEBUG_EVENT_MOUSEBUTTONUP) || !DEBUG_EVENT_MOUSEBUTTONUP
-			return;
-		#endif
+#if !defined(DEBUG_EVENT_MOUSEBUTTONUP) || !DEBUG_EVENT_MOUSEBUTTONUP
+		return;
+#else
 		ss << DEBUG_EVENT_PREPEND << "MOUSEBUTTON " << "  UP";
+#endif // DEBUG_EVENT_MOUSEBUTTONUP
 	}
 	else
 		assert(false);
@@ -99,75 +101,76 @@ static std::string EventToString(const SDL_Event& e) {
 		MouseEventToString(ss, e);
 		break;
 	case SDL_TEXTINPUT:
-		#if defined(DEBUG_EVENT_TEXTINPUT) && DEBUG_EVENT_TEXTINPUT
-			ss << DEBUG_EVENT_PREPEND << "TEXTINPUT: time=" << e.text.timestamp << " text=\"" << e.text.text << "\"";
-		#endif
+#if defined(DEBUG_EVENT_TEXTINPUT) && DEBUG_EVENT_TEXTINPUT
+		ss << DEBUG_EVENT_PREPEND << "TEXTINPUT: time=" << e.text.timestamp << " text=\"" << e.text.text << "\"";
+#endif
 		break;
 	case SDL_TEXTEDITING:
-		#if defined(DEBUG_EVENT_TEXTEDITING) && DEBUG_EVENT_TEXTEDITING
-			ss << DEBUG_EVENT_PREPEND << "TEXTEDITING: time=" << e.edit.timestamp << " text=\"" << e.edit.text
-			   << "\" start=" << e.edit.start << " length=" << e.edit.length;
-		#endif
+#if defined(DEBUG_EVENT_TEXTEDITING) && DEBUG_EVENT_TEXTEDITING
+		ss << DEBUG_EVENT_PREPEND << "TEXTEDITING: time=" << e.edit.timestamp << " text=\"" << e.edit.text
+		   << "\" start=" << e.edit.start << " length=" << e.edit.length;
+#endif // DEBUG_EVENT_TEXTEDITING
 		break;
 	case SDL_QUIT:
-		#if defined(DEBUG_EVENT_QUIT) && DEBUG_EVENT_QUIT
-			ss << DEBUG_EVENT_PREPEND << "QUIT: time=" << e.quit.timestamp;
-		#endif
+#if defined(DEBUG_EVENT_QUIT) && DEBUG_EVENT_QUIT
+		ss << DEBUG_EVENT_PREPEND << "QUIT: time=" << e.quit.timestamp;
+#endif
 		break;
 	case SDL_WINDOWEVENT:
-		#if defined(DEBUG_EVENT_WINDOWEVENT) && DEBUG_EVENT_WINDOWEVENT
-			ss << DEBUG_EVENT_PREPEND << "WINDOWEVENT: time=" << e.window.timestamp << " id=" << e.window.windowID << " event=";
-			switch (e.window.event) {
-			case SDL_WINDOWEVENT_SHOWN:
-				ss << "SHOWN";
-				break;
-			case SDL_WINDOWEVENT_HIDDEN:
-				ss << "HIDDEN";
-				break;
-			case SDL_WINDOWEVENT_EXPOSED:
-				ss << "EXPOSED";
-				break;
-			case SDL_WINDOWEVENT_MOVED:
-				ss << "MOVED to " << e.window.data1 << ',' << e.window.data2;
-				break;
-			case SDL_WINDOWEVENT_RESIZED:
-				ss << "RESIZED to " << e.window.data1 << 'x' << e.window.data2;;
-				break;
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				ss << "SIZE_CHANGED";
-				break;
-			case SDL_WINDOWEVENT_MINIMIZED:
-				ss << "MINIMIZED";
-				break;
-			case SDL_WINDOWEVENT_MAXIMIZED:
-				ss << "MAXIMIZED";
-				break;
-			case SDL_WINDOWEVENT_RESTORED:
-				ss << "RESTORED";
-				break;
-			case SDL_WINDOWEVENT_ENTER:
-				ss << "ENTER";
-				break;
-			case SDL_WINDOWEVENT_LEAVE:
-				ss << "LEAVE";
-				break;
-			case SDL_WINDOWEVENT_FOCUS_GAINED:
-				ss << "FOCUS_GAINED";
-				break;
-			case SDL_WINDOWEVENT_FOCUS_LOST:
-				ss << "FOCUS_LOST";
-				break;
-			case SDL_WINDOWEVENT_CLOSE:
-				ss << "CLOSE";
-				break;
-			}
-		#endif
+#if defined(DEBUG_EVENT_WINDOWEVENT) && DEBUG_EVENT_WINDOWEVENT
+		ss << DEBUG_EVENT_PREPEND << "WINDOWEVENT: time=" << e.window.timestamp
+		   << " id=" << e.window.windowID << " event=";
+		switch (e.window.event) {
+		case SDL_WINDOWEVENT_SHOWN:
+			ss << "SHOWN";
+			break;
+		case SDL_WINDOWEVENT_HIDDEN:
+			ss << "HIDDEN";
+			break;
+		case SDL_WINDOWEVENT_EXPOSED:
+			ss << "EXPOSED";
+			break;
+		case SDL_WINDOWEVENT_MOVED:
+			ss << "MOVED to " << e.window.data1 << ',' << e.window.data2;
+			break;
+		case SDL_WINDOWEVENT_RESIZED:
+			ss << "RESIZED to " << e.window.data1 << 'x' << e.window.data2;;
+			break;
+		case SDL_WINDOWEVENT_SIZE_CHANGED:
+			ss << "SIZE_CHANGED";
+			break;
+		case SDL_WINDOWEVENT_MINIMIZED:
+			ss << "MINIMIZED";
+			break;
+		case SDL_WINDOWEVENT_MAXIMIZED:
+			ss << "MAXIMIZED";
+			break;
+		case SDL_WINDOWEVENT_RESTORED:
+			ss << "RESTORED";
+			break;
+		case SDL_WINDOWEVENT_ENTER:
+			ss << "ENTER";
+			break;
+		case SDL_WINDOWEVENT_LEAVE:
+			ss << "LEAVE";
+			break;
+		case SDL_WINDOWEVENT_FOCUS_GAINED:
+			ss << "FOCUS_GAINED";
+			break;
+		case SDL_WINDOWEVENT_FOCUS_LOST:
+			ss << "FOCUS_LOST";
+			break;
+		case SDL_WINDOWEVENT_CLOSE:
+			ss << "CLOSE";
+			break;
+		}
+#endif // DEBUG_EVENT_WINDOWEVENT
 		break;
 	default:
 		if (e.type >= SDL_USEREVENT) {
-			#if defined(DEBUG_EVENT_USEREVENT) && DEBUG_EVENT_USEREVENT
-				ss << DEBUG_EVENT_PREPEND << "USEREVENT: time=" << e.user.timestamp << " code=" << e.user.code;
-			#endif
+#if defined(DEBUG_EVENT_USEREVENT) && DEBUG_EVENT_USEREVENT
+			ss << DEBUG_EVENT_PREPEND << "USEREVENT: time=" << e.user.timestamp << " code=" << e.user.code;
+#endif
 		}
 		else {
 			// ignore event
@@ -176,4 +179,4 @@ static std::string EventToString(const SDL_Event& e) {
 	return ss.str();
 }
 
-#endif
+#endif  // NDEBUG
