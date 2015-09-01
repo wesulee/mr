@@ -63,6 +63,9 @@ namespace Constants {
 
 
 #ifndef NDEBUG
+#include "console.h"
+// debug ostream
+#define DEBUG_OS Console::begin()
 // Alpha are percentages (0 transparent, 100 opaque)
 // Mouse position overlay
 #define DEBUG_MOUSE_POS 1

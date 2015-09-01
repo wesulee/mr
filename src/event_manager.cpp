@@ -2,11 +2,9 @@
 #include "event_callback.h"
 #include "game_data.h"
 #include "state_manager.h"
-
 #ifndef NDEBUG
 #include "constants.h"
 #include <iomanip>
-#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -24,7 +22,7 @@ void EventManager::process() {
 		#ifndef NDEBUG
 		std::string eventStr = EventToString(e);
 		if (!eventStr.empty())
-			std::cout << eventStr << std::endl;
+			DEBUG_OS << eventStr << std::endl;
 		#endif
 		switch (e.type) {
 		case SDL_MOUSEMOTION:

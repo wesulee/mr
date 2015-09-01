@@ -5,7 +5,6 @@
 #include <cstring>	// memcpy
 #ifndef NDEBUG
 #include <sstream>
-#include <iostream>
 #endif
 
 
@@ -31,7 +30,7 @@ void InputHandler::startTextInput() {
 		SDL_StartTextInput();
 		textInputEnabled = true;
 		#if defined(DEBUG_IH_TEXT_INPUT) && DEBUG_IH_TEXT_INPUT
-			std::cout << DEBUG_IH_PREPEND << "TextInput ENABLED" << std::endl;
+			DEBUG_OS << DEBUG_IH_PREPEND << "TextInput ENABLED" << std::endl;
 		#endif
 	}
 }
@@ -42,7 +41,7 @@ void InputHandler::stopTextInput() {
 		SDL_StopTextInput();
 		textInputEnabled = false;
 		#if defined(DEBUG_IH_TEXT_INPUT) && DEBUG_IH_TEXT_INPUT
-			std::cout << DEBUG_IH_PREPEND << "TextInput DISABLED" << std::endl;
+			DEBUG_OS << DEBUG_IH_PREPEND << "TextInput DISABLED" << std::endl;
 		#endif
 	}
 }
@@ -240,7 +239,7 @@ void InputHandler::sendWidgetEvent() {
 	}
 	std::string str = ss.str();
 	if (!str.empty())
-		std::cout << str << std::endl;
+		DEBUG_OS << str << std::endl;
 	#endif
 	widgetCallback(wEvent);
 }
@@ -264,7 +263,7 @@ void InputHandler::sendTextEvent() {
 	}
 	std::string str = ss.str();
 	if (!str.empty())
-		std::cout << str << std::endl;
+		DEBUG_OS << str << std::endl;
 	#endif
 	assert(textInputWidget != nullptr);
 	textInputWidget->event(wEvent);
