@@ -1,5 +1,6 @@
 #include "initial_screen.h"
 #include "canvas.h"
+#include "console.h"
 #include "constants.h"
 #include "exception.h"
 #include "font.h"
@@ -15,24 +16,36 @@
 
 
 namespace InitialScreenSettings {
-	constexpr Color colBg = COLOR_BLACK;
-	constexpr Color colBar = COLOR_WHITE;
+	constexpr char dirCreateSuccess[] = "Created directory \"";
+	constexpr char dirCreateFailure[] = "Unable to create directory \"";
 	constexpr int barWidth = 150;
 	constexpr int barHeight = 10;
 	constexpr int barOutline = 1;
 	constexpr int jobs = 5;
+	constexpr Color colBg = COLOR_BLACK;
+	constexpr Color colBar = COLOR_WHITE;
 }
 
 
 static void checkFolder(const std::string& path, bool writePerm) {
 	namespace fs = boost::filesystem;
+	using namespace InitialScreenSettings;
 	fs::path p{path};
 	fs::file_status status = fs::status(p);
 	if (!fs::exists(status)) {
-		// try to create directory
-		fs::create_directory(p);
-		status = fs::status(p);
+		// Try to create directory
+		// If unable to create directory, report and continue
+		try {
+			if (fs::create_directory(p))
+				Console::begin() << dirCreateSuccess << path << '\"' << std::endl;
+			else
+				Console::begin() << dirCreateFailure << path << '\"' << std::endl;
+		}
+		catch (fs::filesystem_error const& e) {
+			Console::begin() << dirCreateFailure << path << "\". Details: " << e.what() << std::endl;
+		}
 	}
+	status = fs::status(p);
 	if (!fs::is_directory(status))
 		logAndExit(FileError{path, FileError::Err::NOT_DIRECTORY});
 	// check permissions
