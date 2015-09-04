@@ -160,6 +160,10 @@ FontResource ResourceManager::loadFont(const Font& font, const bool shared) {
 		if (it != fonts.end())	{	// already loaded
 			++(it->second.counter);
 			fr.font = it->second.reference;
+#if defined(DEBUG_RM_LOAD_FONT) && DEBUG_RM_LOAD_FONT
+			DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadFont INC ref to " << it->second.counter
+			            << " (" << toString(fr) << ')' << std::endl;
+#endif // DEBUG_RM_LOAD_FONT
 		}
 		else {	// hasn't been loaded yet, load now
 			ResourceCounter<TTF_Font> insert;
@@ -168,14 +172,20 @@ FontResource ResourceManager::loadFont(const Font& font, const bool shared) {
 			// insert into fonts
 			fonts[font] = insert;
 			fr.font = insert.reference;
+#if defined(DEBUG_RM_LOAD_FONT) && DEBUG_RM_LOAD_FONT
+			DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadFont NEW ref (" << toString(fr) << ')' << std::endl;
+#endif
 		}
 	}
 	else {	// if not shared, immediately load
 		TTF_Font* f = openFont(font);
 		fr.font = f;
 		auto insert = fontsPrivate.insert(f);
-		(void)insert;	// remove warning
 		assert(insert.second);
+		(void)insert;	// remove warning
+#if defined(DEBUG_RM_LOAD_FONT) && DEBUG_RM_LOAD_FONT
+		DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadFont NEW (" << toString(fr) << ')' << std::endl;
+#endif
 	}
 	return fr;
 }
@@ -192,6 +202,9 @@ void ResourceManager::unloadFont(FontResource& fr) {
 		font.size = fr.size;
 		auto it = fonts.find(font);
 		if (it == fonts.end()) {
+#if defined(DEBUG_RM_UNLOAD_FONT) && DEBUG_RM_UNLOAD_FONT
+			DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadFont invalid (" << toString(fr) << ')' << std::endl;
+#endif
 			logAndExit(RuntimeError{
 				"FontResource error",
 				"ResourceManager::unloadFont invalid resource: " + toString(fr)
@@ -199,19 +212,37 @@ void ResourceManager::unloadFont(FontResource& fr) {
 		}
 		--(it->second.counter);
 		if (it->second.counter == 0) {	// unload
+#if defined(DEBUG_RM_UNLOAD_FONT) && DEBUG_RM_UNLOAD_FONT
+			DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadFont FREE (" << toString(fr) << ')' << std::endl;
+#endif
 			TTF_CloseFont(it->second.reference);
 			fonts.erase(it);
+		}
+		else {
+#if defined(DEBUG_RM_UNLOAD_FONT) && DEBUG_RM_UNLOAD_FONT
+			DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadFont DEC ref to " << it->second.counter
+			            << " (" << toString(fr) << ')' << std::endl;
+#endif // DEBUG_RM_UNLOAD_FONT
 		}
 	}
 	else {
 		auto it = fontsPrivate.find(fr.font);
 		if (it == fontsPrivate.end()) {
+#if defined(DEBUG_RM_UNLOAD_FONT) && DEBUG_RM_UNLOAD_FONT
+			DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadFont invalid (" << toString(fr) << ')' << std::endl;
+#endif
 			logAndExit(RuntimeError{
 				"FontResource error",
 				"ResourceManager::unloadFont invalid resource: " + toString(fr)
 			});
 		}
-		fontsPrivate.erase(it);
+		else {
+#if defined(DEBUG_RM_UNLOAD_FONT) && DEBUG_RM_UNLOAD_FONT
+			DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadFont FREE (" << toString(fr) << ')' << std::endl;
+#endif
+			TTF_CloseFont(*it);
+			fontsPrivate.erase(it);
+		}
 	}
 }
 
@@ -250,9 +281,15 @@ AnimatedSpriteSource* ResourceManager::loadAnimation(const std::map<std::string,
 	AnimatedSpriteSource* src;
 	switch (t) {
 	case AnimationType::UNIFORM:
+#if defined(DEBUG_RM_LOAD_ANIMATION) && DEBUG_RM_LOAD_ANIMATION
+		DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadAnimation type UNIFORM \"" << name << "\" ..." << std::endl;
+#endif
 		src = loadAnimationUni(args);
 		break;
 	default:
+#if defined(DEBUG_RM_LOAD_ANIMATION) && DEBUG_RM_LOAD_ANIMATION
+		DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadAnimation type UNKNOWN \"" << name << '\"' << std::endl;
+#endif
 		assert(false);
 		src = nullptr;
 	}
@@ -283,6 +320,9 @@ void ResourceManager::freeAnimation(const std::string& name) {
 			"ResourceManager::freeAnimation cannot find: " + name
 		});
 	}
+#if defined(DEBUG_RM_UNLOAD_ANIMATION) && DEBUG_RM_UNLOAD_ANIMATION
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadAnimation \"" << name << "\" ..." << std::endl;
+#endif
 	decTextureRef(it->second->getImageName());
 	delete it->second;
 	animations.erase(it);
@@ -318,6 +358,9 @@ std::pair<SDL_Surface*, SDL_Texture*> ResourceManager::loadImage(const std::stri
 		SDL::logError("ResourceManager::loadImage SDL::setColorKey");
 	}
 	ret.second = SDL::newTexture(ret.first);
+#if defined(DEBUG_RM_TEX_REF) && DEBUG_RM_TEX_REF
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_TEX_PREPEND << "NEW \"" << name << '\"' << std::endl;
+#endif
 	// keep track of references
 	textures[name] = {ret.second, 1};
 	return ret;
@@ -403,6 +446,10 @@ void ResourceManager::incTextureRef(const std::string& name) {
 	auto it = textures.find(name);
 	assert(it != textures.end());
 	++(it->second.counter);
+#if defined(DEBUG_RM_TEX_REF) && DEBUG_RM_TEX_REF
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_TEX_PREPEND << "INC to " << it->second.counter
+	            << " for \"" << name << '\"' << std::endl;
+#endif // DEBUG_RM_TEX_REF
 }
 
 
@@ -410,6 +457,10 @@ void ResourceManager::decTextureRef(const std::string& name) {
 	auto it = textures.find(name);
 	assert(it != textures.end());
 	--(it->second.counter);
+#if defined(DEBUG_RM_TEX_REF) && DEBUG_RM_TEX_REF
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_TEX_PREPEND << "DEC to " << it->second.counter
+	            << " for \"" << name << '\"' << std::endl;
+#endif // DEBUG_RM_TEX_REF
 	if (it->second.counter == 0) {	// free texture
 		SDL::free(it->second.reference);
 		textures.erase(it);

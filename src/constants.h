@@ -89,6 +89,14 @@ namespace Constants {
 // InputHandler
 #define DEBUG_IH_PREPEND "InputHandler "
 #define DEBUG_IH_TEXT_INPUT 1
+// ResourceManager
+#define DEBUG_RM_PREPEND "ResourceManager "
+#define DEBUG_RM_TEX_PREPEND "textureRef "
+#define DEBUG_RM_LOAD_FONT        1
+#define DEBUG_RM_UNLOAD_FONT      1
+#define DEBUG_RM_LOAD_ANIMATION   1
+#define DEBUG_RM_UNLOAD_ANIMATION 1
+#define DEBUG_RM_TEX_REF          1
 // Room
 #define DEBUG_ROOM_BLOCK 1
 #define DEBUG_ROOM_BLOCK_COLOR COLOR_RED
