@@ -22,7 +22,7 @@ void EventManager::process() {
 #ifndef NDEBUG
 		std::string eventStr = EventToString(e);
 		if (!eventStr.empty())
-			DEBUG_OS << eventStr << std::endl;
+			DEBUG_BEGIN << eventStr << std::endl;
 #endif // NDEBUG
 		switch (e.type) {
 		case SDL_MOUSEMOTION:
