@@ -89,6 +89,10 @@ namespace Constants {
 // InputHandler
 #define DEBUG_IH_PREPEND "InputHandler "
 #define DEBUG_IH_TEXT_INPUT 1
+// JSONReader
+#define DEBUG_JSON_PREPEND "JSON "
+#define DEBUG_JSON_READ 1
+#define DEBUG_JSON_PROC 1
 // ResourceManager
 #define DEBUG_RM_PREPEND "ResMan "
 #define DEBUG_RM_TEX_PREPEND "textureRef "

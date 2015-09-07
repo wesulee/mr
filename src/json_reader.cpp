@@ -1,5 +1,6 @@
 #include "json_reader.h"
 #include "data_validation.h"
+#include "game_data.h"
 #include "json_data.h"
 #include "logger.h"
 #include "room_inc.h"
@@ -8,6 +9,9 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <cassert>
+#ifndef NDEBUG
+#include "constants.h"
+#endif
 
 
 std::string JSONReader::errorMsg = "";
@@ -28,6 +32,16 @@ static bool validArray(T begin, const T end) {
 		++begin;
 	}
 	return true;
+}
+
+
+// returns path if it can't do it
+// also adds quotes
+static std::string getRelPathToDataDir(const std::string& filePath) {
+	std::size_t i = filePath.find(GameData::instance().dataPath);
+	if (i != 0)
+		return (std::string{'\"'} + filePath + '\"');
+	return (std::string{'\"'} + filePath.substr(GameData::instance().dataPath.size()) + '\"');
 }
 
 
@@ -110,6 +124,9 @@ std::shared_ptr<SpriteSheetData> JSONReader::runLoadSpriteSheet(const std::strin
 	std::string tmpStr;
 	int tmpInt, i, j;
 	read(filePath, pt, pErr);
+#if defined(DEBUG_JSON_PROC) && DEBUG_JSON_PROC
+		DEBUG_BEGIN << DEBUG_JSON_PREPEND << "PROC spritesheet " << getRelPathToDataDir(filePath) << std::endl;
+#endif
 
 	checkExists(pt, {"img", "sprites"}, pErr);
 	data->image = pt.get<std::string>("img");
@@ -190,6 +207,9 @@ std::shared_ptr<RoomData> JSONReader::runLoadRoom(const std::string& filePath) {
 	int tmpInt;
 
 	read(filePath, pt, pErr);
+#if defined(DEBUG_JSON_PROC) && DEBUG_JSON_PROC
+		DEBUG_BEGIN << DEBUG_JSON_PREPEND << "PROC room " << getRelPathToDataDir(filePath) << std::endl;
+#endif
 
 	checkExists(
 		pt,
@@ -428,6 +448,9 @@ std::shared_ptr<CreatureData> JSONReader::runLoadCreature(const std::string& fil
 	int i;
 
 	read(filePath, pt, pErr);
+#if defined(DEBUG_JSON_PROC) && DEBUG_JSON_PROC
+		DEBUG_BEGIN << DEBUG_JSON_PREPEND << "PROC creature " << getRelPathToDataDir(filePath) << std::endl;
+#endif
 
 	checkExists(pt, {"attr"}, pErr);
 	// process attributes
@@ -468,6 +491,9 @@ std::string JSONReader::getLogString(const ParseError& e) {
 void JSONReader::read(const std::string& filePath, boost::property_tree::ptree& pt, ParseError& pe) {
 	using namespace boost::property_tree;
 	try {
+#if defined(DEBUG_JSON_READ) && DEBUG_JSON_READ
+		DEBUG_BEGIN << DEBUG_JSON_PREPEND << "READ " << getRelPathToDataDir(filePath) << std::endl;
+#endif
 		read_json(filePath, pt);
 	}
 	catch (ptree_bad_path const& e) {
