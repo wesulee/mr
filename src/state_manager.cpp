@@ -322,36 +322,63 @@ void StateManager::stateChange() {
 
 GameState* StateManager::newGameState(const StateType st, std::shared_ptr<StateContext> sc) {
 	GameState* gs;
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+	DEBUG_BEGIN << DEBUG_StM_PREPEND << "new ";
+#endif
 	switch (st) {
 	case StateType::INIT:
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+		DEBUG_OS << toString(StateType::INIT) << std::endl;
+#endif
 		gs = new InitialScreen{sc};
 		assert(gs->getType() == StateType::INIT);
 		break;
 	case StateType::MENU:
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+		DEBUG_OS << toString(StateType::MENU) << std::endl;
+#endif
 		gs = new MainMenu{sc};
 		assert(gs->getType() == StateType::MENU);
 		break;
 	case StateType::GAME:
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+		DEBUG_OS << toString(StateType::GAME) << std::endl;
+#endif
 		gs = new MainGame{sc};
 		assert(gs->getType() == StateType::GAME);
 		break;
 	case StateType::GAME_MENU:
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+		DEBUG_OS << toString(StateType::GAME_MENU) << std::endl;
+#endif
 		gs = new GameMenu{sc};
 		assert(gs->getType() == StateType::GAME_MENU);
 		break;
 	case StateType::LOAD_MENU:
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+		DEBUG_OS << toString(StateType::LOAD_MENU) << std::endl;
+#endif
 		gs = new LoadMenu{sc};
 		assert(gs->getType() == StateType::LOAD_MENU);
 		break;
 	case StateType::SAVE_MENU:
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+		DEBUG_OS << toString(StateType::SAVE_MENU) << std::endl;
+#endif
 		gs = new SaveMenu{sc};
 		assert(gs->getType() == StateType::SAVE_MENU);
 		break;
 	case StateType::DIALOG:
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+		DEBUG_OS << toString(StateType::DIALOG) << std::endl;
+#endif
 		gs = new DialogState{sc};
 		assert(gs->getType() == StateType::DIALOG);
 		break;
 	default:
+#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
+		DEBUG_OS << "???" << std::endl;
+#endif
 		assert(false);	// did you forget to implement requested StateType?
 		gs = nullptr;
 		break;
@@ -359,8 +386,5 @@ GameState* StateManager::newGameState(const StateType st, std::shared_ptr<StateC
 	if (gs == nullptr) {
 		logAndExit(RuntimeError{"StateManager::newGameState", "unexpected nullptr"});
 	}
-#if defined(DEBUG_StM_NEW_DEL) && DEBUG_StM_NEW_DEL
-	DEBUG_BEGIN << DEBUG_StM_PREPEND << "new " << toString(gs->getType()) << std::endl;
-#endif
 	return gs;
 }
