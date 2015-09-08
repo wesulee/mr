@@ -14,6 +14,7 @@ namespace Constants {
 	constexpr int targetFPS = 60;
 	constexpr int frameDuration = 1000 / targetFPS;
 	constexpr float frameDurationFloat = 1000.0f / targetFPS;
+	constexpr char loggerFName[] = "errors.txt";
 	constexpr char iniFileName[] = "mr.ini";
 	constexpr char saveFileExt[] = "txt";
 	constexpr std::size_t maxIndex = std::numeric_limits<std::size_t>::max();

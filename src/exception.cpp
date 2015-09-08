@@ -22,7 +22,7 @@ static void displayMessage(const Uint32 flags, const char* title, const char* me
 
 
 void logAndExit(const Exception& e) {
-	std::cerr << "An error has occurred, see " << Logger::getPath() << " for details.";
+	std::cerr << "An error has occurred, see " << Logger::instance().getPath() << " for details.";
 	const std::string& str = e.what();
 	Logger::instance().log(str);
 	displayMessage(SDL_MESSAGEBOX_ERROR, "Error", str.c_str());

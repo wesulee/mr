@@ -87,12 +87,13 @@ void setBasePath(std::string& path) {
 	char* root = SDL_GetBasePath();
 	if (root == nullptr) {
 		// in this case, log file may not be in same directory as executable
+		Logger::instance().setPath(Constants::loggerFName);
 		SDL::logError("SDL_GetBasePath");
 		throw SettingsException{true};
 	}
 	path = root;
 	SDL_free(root);
-	Logger::setPath(path + Logger::getPath());
+	Logger::instance().setPath(path + Constants::loggerFName);
 }
 
 

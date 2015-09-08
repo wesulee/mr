@@ -1,20 +1,23 @@
 #include "logger.h"
+#include "constants.h"
 #include <cstdio>
 #include <ctime>
-#include <fstream>
+#include <iostream>
 
 
-std::string Logger::path = "errors.txt";
+void Logger::setPath(const std::string& s) {
+	path = s;
+	os = std::ofstream{path, std::ofstream::out | std::ofstream::app};
+	if (!os) {
+		std::cerr << "Unable to open log file \"" << path << '\"' << std::endl;
+		//! ...
+	}
+}
 
 
 void Logger::log(const std::string& msg) {
-	std::ofstream f{path, std::ofstream::out | std::ofstream::app};
-	if (!f) {
-		// what to do?
-		return;
-	}
-
-	f << getTimestamp() << ' ' << msg << std::endl;
+	os << getTimestamp() << ' ' << msg << std::endl;
+	os.flush();
 }
 
 
