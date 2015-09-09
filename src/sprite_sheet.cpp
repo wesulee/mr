@@ -1,5 +1,6 @@
 #include "sprite_sheet.h"
 #include "exception.h"
+#include "logger.h"
 #include "sprite.h"
 #include <cassert>
 
@@ -20,7 +21,7 @@ void SpriteSheet::add(const std::string& name, const SDL_Rect& rect) {
 Sprite SpriteSheet::get(const std::string& name) const {
 	auto find = sprites.find(name);
 	if (find == sprites.end())
-		logAndExit(RuntimeError{"SpriteSheet::get", "invalid name: " + name});
+		Logger::instance().exit(RuntimeError{"SpriteSheet::get", "invalid name: " + name});
 	return Sprite{tex, find->second};
 }
 
@@ -28,6 +29,6 @@ Sprite SpriteSheet::get(const std::string& name) const {
 const SDL_Rect& SpriteSheet::getBounds(const std::string& name) const {
 	auto find = sprites.find(name);
 	if (find == sprites.end())
-		logAndExit(RuntimeError{"SpriteSheet::getBounds", "invalid name: " + name});
+		Logger::instance().exit(RuntimeError{"SpriteSheet::getBounds", "invalid name: " + name});
 	return find->second;
 }

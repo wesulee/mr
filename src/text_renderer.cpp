@@ -2,6 +2,7 @@
 #include "exception.h"
 #include "font.h"
 #include "game_data.h"
+#include "logger.h"
 #include "resource_manager.h"
 #include <cassert>
 
@@ -49,14 +50,14 @@ SDL_Surface* TextRenderer::render(const char* cstr) {
 		break;
 	}
 	if (surf == nullptr)
-		logAndExit(SDLError{"unable to render text", SDLFunc::TTF_RenderText_});
+		Logger::instance().exit(SDLError{"unable to render text", SDLFunc::TTF_RenderText_});
 	return surf;
 }
 
 
 void TextRenderer::size(const std::string& text, int& width, int& height) {
 	if (TTF_SizeText(fr.font, text.c_str(), &width, &height) != 0)
-		logAndExit(SDLError{"unable to get text size", SDLFunc::TTF_SizeText});
+		Logger::instance().exit(SDLError{"unable to get text size", SDLFunc::TTF_SizeText});
 }
 
 

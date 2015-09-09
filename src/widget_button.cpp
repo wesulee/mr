@@ -2,6 +2,7 @@
 #include "canvas.h"
 #include "exception.h"
 #include "game_data.h"
+#include "logger.h"
 #include "shapes.h"
 #include "text_renderer.h"
 #include "utility.h"
@@ -340,12 +341,12 @@ BitmapButton::~BitmapButton() {
 void BitmapButton::setTexture(const WidgetState s, SDL_Texture* tex) {
 	SDL_Texture* const curTex = getTex(s);
 	if (curTex != nullptr)
-		logAndExit(RuntimeError{"BitmapButton::setTexture", "not allowed to overwrite texture"});
+		Logger::instance().exit(RuntimeError{"BitmapButton::setTexture", "not allowed to overwrite texture"});
 	IntPair dim;
 	SDL::getDim(tex, dim.first, dim.second);
 	if (texDim.first != -1) {	// texDim has been set
 		if (dim != texDim)
-			logAndExit(RuntimeError{"BitmapButton::setTexture", "texture dimension mismatch"});
+			Logger::instance().exit(RuntimeError{"BitmapButton::setTexture", "texture dimension mismatch"});
 	}
 	else {
 		texDim = dim;

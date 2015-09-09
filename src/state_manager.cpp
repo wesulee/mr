@@ -2,6 +2,7 @@
 #include "event_manager.h"
 #include "exception.h"
 #include "game_state.h"
+#include "logger.h"
 #include "state_context.h"
 #ifndef NDEBUG
 #include "constants.h"
@@ -384,7 +385,7 @@ GameState* StateManager::newGameState(const StateType st, std::shared_ptr<StateC
 		break;
 	}
 	if (gs == nullptr) {
-		logAndExit(RuntimeError{"StateManager::newGameState", "unexpected nullptr"});
+		Logger::instance().exit(RuntimeError{"StateManager::newGameState", "unexpected nullptr"});
 	}
 	return gs;
 }

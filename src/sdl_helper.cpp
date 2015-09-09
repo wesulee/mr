@@ -110,7 +110,7 @@ SDL_Texture* SDL::toTexture(SDL_Surface* surf) {
 	SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
 	free(surf);
 	if (tex == nullptr)
-		logAndExit(SDLError{"unable to convert surface to texture", SDLFunc::SDL_CreateTextureFromSurface});
+		Logger::instance().exit(SDLError{"unable to convert surface to texture", SDLFunc::SDL_CreateTextureFromSurface});
 	return tex;
 }
 
@@ -208,27 +208,27 @@ bool SDL::pushUserEvent(SDL_Event& e) {
 SDL_Surface* SDL::copyScreen() {
 	SDL_Surface* surf = newSurface32(Constants::windowWidth, Constants::windowHeight);
 	if (SDL_RenderReadPixels(renderer, nullptr, surf->format->format, surf->pixels, surf->pitch) != 0)
-		logAndExit(SDLError{"SDL::copyScreen", SDLFunc::SDL_RenderReadPixels});
+		Logger::instance().exit(SDLError{"SDL::copyScreen", SDLFunc::SDL_RenderReadPixels});
 	return surf;
 }
 
 
 void SDL::renderSetViewport(SDL_Rect* rect) {
 	if (SDL_RenderSetViewport(renderer, rect) != 0)
-		logAndExit(SDLError{"unable to set viewport", SDLFunc::SDL_RenderSetViewport});
+		Logger::instance().exit(SDLError{"unable to set viewport", SDLFunc::SDL_RenderSetViewport});
 }
 
 
 void SDL::renderSetClipRect(SDL_Rect* rect) {
 	if (SDL_RenderSetClipRect(renderer, rect) != 0)
-		logAndExit(SDLError{"unable to set clip rect", SDLFunc::SDL_RenderSetClipRect});
+		Logger::instance().exit(SDLError{"unable to set clip rect", SDLFunc::SDL_RenderSetClipRect});
 }
 
 
 SDL_Surface* SDL::loadBMP(const std::string& path) {
 	SDL_Surface* surf = SDL_LoadBMP(path.c_str());
 	if (surf == nullptr)
-		logAndExit(SDLError{"unable to load image", SDLFunc::SDL_LoadBMP});
+		Logger::instance().exit(SDLError{"unable to load image", SDLFunc::SDL_LoadBMP});
 	return surf;
 }
 
@@ -240,26 +240,26 @@ void SDL::getDim(SDL_Texture* tex, int& w, int& h) {
 
 void SDL::queryTexture(SDL_Texture* tex, Uint32* format, int* access, int* w, int* h) {
 	if (SDL_QueryTexture(tex, format, access, w, h) != 0)
-		logAndExit(SDLError{"query texture failure", SDLFunc::SDL_QueryTexture});
+		Logger::instance().exit(SDLError{"query texture failure", SDLFunc::SDL_QueryTexture});
 }
 
 
 void SDL::glyphMetrics(TTF_Font* f, Uint16 c, int* minX, int* maxX, int* minY, int* maxY, int* advance) {
 	if (TTF_GlyphMetrics(f, c, minX, maxX, minY, maxY, advance) != 0)
-		logAndExit(SDLError{"glyph metrics failure", SDLFunc::TTF_GlyphMetrics});
+		Logger::instance().exit(SDLError{"glyph metrics failure", SDLFunc::TTF_GlyphMetrics});
 }
 
 
 void SDL::setAlpha(SDL_Texture* tex, const Uint8 alpha) {
 	if (SDL_SetTextureAlphaMod(tex, alpha) != 0)
-		logAndExit(SDLError{"texture alpha mod failure", SDLFunc::SDL_SetTextureAlphaMod});
+		Logger::instance().exit(SDLError{"texture alpha mod failure", SDLFunc::SDL_SetTextureAlphaMod});
 }
 
 
 SDL_Window* SDL::createWindow(const char* title, const int x, const int y, const int w, const int h, const Uint32 flags) {
 	SDL_Window* window = SDL_CreateWindow(title, x, y, w, h, flags);
 	if (window == nullptr)
-		logAndExit(SDLError{"create window failure", SDLFunc::SDL_CreateWindow});
+		Logger::instance().exit(SDLError{"create window failure", SDLFunc::SDL_CreateWindow});
 	return window;
 }
 
@@ -267,7 +267,7 @@ SDL_Window* SDL::createWindow(const char* title, const int x, const int y, const
 SDL_Renderer* SDL::createRenderer(SDL_Window* w, const int i, const Uint32 flags) {
 	SDL_Renderer* renderer = SDL_CreateRenderer(w, i, flags);
 	if (renderer == nullptr)
-		logAndExit(SDLError{"create renderer failure", SDLFunc::SDL_CreateRenderer});
+		Logger::instance().exit(SDLError{"create renderer failure", SDLFunc::SDL_CreateRenderer});
 	return renderer;
 }
 
@@ -275,33 +275,33 @@ SDL_Renderer* SDL::createRenderer(SDL_Window* w, const int i, const Uint32 flags
 int SDL::getNumRenderDrivers() {
 	const int n = SDL_GetNumRenderDrivers();
 	if (n < 1)
-		logAndExit(SDLError{"unable to get number of render drivers", SDLFunc::SDL_GetNumRenderDrivers});
+		Logger::instance().exit(SDLError{"unable to get number of render drivers", SDLFunc::SDL_GetNumRenderDrivers});
 	return n;
 }
 
 
 void SDL::getRenderDriverInfo(const int i, SDL_RendererInfo* info) {
 	if (SDL_GetRenderDriverInfo(i, info) != 0)
-		logAndExit(SDLError{"unable to get render driver info", SDLFunc::SDL_GetRenderDriverInfo});
+		Logger::instance().exit(SDLError{"unable to get render driver info", SDLFunc::SDL_GetRenderDriverInfo});
 }
 
 
 void SDL::getRendererInfo(SDL_Renderer* renderer, SDL_RendererInfo* info) {
 	if (SDL_GetRendererInfo(renderer, info) != 0)
-		logAndExit(SDLError{"unable to get renderer info", SDLFunc::SDL_GetRendererInfo});
+		Logger::instance().exit(SDLError{"unable to get renderer info", SDLFunc::SDL_GetRendererInfo});
 }
 
 
 void SDL::setRenderDrawBlendMode(SDL_Renderer* renderer, const SDL_BlendMode mode) {
 	if (SDL_SetRenderDrawBlendMode(renderer, mode) != 0)
-		logAndExit(SDLError{"unable to set blend mode", SDLFunc::SDL_SetRenderDrawBlendMode});
+		Logger::instance().exit(SDLError{"unable to set blend mode", SDLFunc::SDL_SetRenderDrawBlendMode});
 }
 
 
 SDL_Surface* SDL::createSurface(int w, int h, int depth, Uint32 r, Uint32 g, Uint32 b, Uint32 a) {
 	SDL_Surface* surf = SDL_CreateRGBSurface(0, w, h, depth, r, g, b, a);
 	if (surf == nullptr)
-		logAndExit(SDLError{"unable to create new surface", SDLFunc::SDL_CreateRGBSurface});
+		Logger::instance().exit(SDLError{"unable to create new surface", SDLFunc::SDL_CreateRGBSurface});
 	return surf;
 }
 

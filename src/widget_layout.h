@@ -2,6 +2,7 @@
 
 #include "constants.h"
 #include "exception.h"
+#include "logger.h"
 #include "shapes.h"
 #include "widget.h"
 #include "widget_event.h"
@@ -331,7 +332,7 @@ template<class T>
 void AbstractLayout<T>::add(Widget* w) {
 	using namespace LayoutHelper;
 	if (w == nullptr)
-		logAndExit(RuntimeError{"AbstractLayout::add nullptr"});
+		Logger::instance().exit(RuntimeError{"AbstractLayout::add nullptr"});
 	w->_setParent(this);
 	w->_setIndex(widgets.size());
 	widgets.push_back(w);
@@ -479,7 +480,7 @@ template<class T>
 void AbstractLayout<T>::_requestResize(Widget* w, const IntPair&) {
 	assert(LayoutHelper::checkExists(widgets, w));
 	//! TODO not implemented
-	// This does not need to be implemented if widgets are created in the correct order
+	// This does not need to implemented if widgets are created in the correct order
 	//   and no dynamic resizing is needed during a child's lifetime.
 	(void)w;
 	assert(false);
@@ -526,7 +527,7 @@ void AbstractLayout<T>::addExpand(Widget* w) {
 	IntPair prefSz = w->getPrefSize();
 	IntPair resSz;	// resize size
 	if (!checkPrefExpand(prefSz))
-		logAndExit(RuntimeError{"VerticalLayout::addExpand no expand after resize"});
+		Logger::instance().exit(RuntimeError{"VerticalLayout::addExpand no expand after resize"});
 	// update contentSize, contentSizeExc
 	contentSize += T::getP(curSz);
 	if (T::getP(prefSz) != Constants::WSizeExpand)
@@ -667,7 +668,7 @@ void AbstractLayout<T>::childResize(Widget* w, const IntPair& p) {
 	assert(w->getSize() == p);	// make sure resized to correct size
 	curSz = w->getSize();
 	if (curSz != p)
-		logAndExit(RuntimeError{"AbstractLayout::childResize"});
+		Logger::instance().exit(RuntimeError{"AbstractLayout::childResize"});
 	curPrefSz = w->getPrefSize();
 	curMinSz = w->getMinSize();
 	// insert or remove from widgetsExpand if necessary
@@ -773,7 +774,7 @@ void AbstractLayout<T>::removeWidgetsExpand(const Widget* w) {
 	assert(widgetsExpand.count(toMapKey(w)) == 1);
 	auto it = widgetsExpand.find(toMapKey(w));
 	if (it == widgetsExpand.end())
-		logAndExit(RuntimeError{"layout error"});
+		Logger::instance().exit(RuntimeError{"layout error"});
 	prefExpandPCount -= static_cast<int>(T::getPRef(it->second));
 	prefExpandSCount -= static_cast<int>(T::getSRef(it->second));
 	widgetsExpand.erase(it);

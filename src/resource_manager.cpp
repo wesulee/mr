@@ -205,7 +205,7 @@ void ResourceManager::unloadFont(FontResource& fr) {
 #if defined(DEBUG_RM_UNLOAD_FONT) && DEBUG_RM_UNLOAD_FONT
 			DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadFont invalid (" << toString(fr) << ')' << std::endl;
 #endif
-			logAndExit(RuntimeError{
+			Logger::instance().exit(RuntimeError{
 				"FontResource error",
 				"ResourceManager::unloadFont invalid resource: " + toString(fr)
 			});
@@ -231,7 +231,7 @@ void ResourceManager::unloadFont(FontResource& fr) {
 #if defined(DEBUG_RM_UNLOAD_FONT) && DEBUG_RM_UNLOAD_FONT
 			DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadFont invalid (" << toString(fr) << ')' << std::endl;
 #endif
-			logAndExit(RuntimeError{
+			Logger::instance().exit(RuntimeError{
 				"FontResource error",
 				"ResourceManager::unloadFont invalid resource: " + toString(fr)
 			});
@@ -256,7 +256,7 @@ Sprite ResourceManager::getSprite(const std::string& name) {
 UniformAnimatedSpriteSource* ResourceManager::getUSprSrc(const std::string& name) {
 	auto it = animations.find(name);
 	if (it == animations.end()) {
-		logAndExit(RuntimeError{
+		Logger::instance().exit(RuntimeError{
 			"invalid animation reference",
 			"ResourceManager::getUSprSrc invalid reference to " + name
 		});
@@ -271,7 +271,7 @@ AnimatedSpriteSource* ResourceManager::loadAnimation(const std::map<std::string,
 	assert(args.count("type") != 0);
 	auto it = animationLookup.find(args.at("type"));
 	if (it == animationLookup.end()) {
-		logAndExit(RuntimeError{
+		Logger::instance().exit(RuntimeError{
 			"invalid animation type",
 			"ResourceManager::loadAnimation unknown type: " + args.at("type")
 		});
@@ -294,7 +294,7 @@ AnimatedSpriteSource* ResourceManager::loadAnimation(const std::map<std::string,
 		src = nullptr;
 	}
 	if (src == nullptr) {
-		logAndExit(RuntimeError{
+		Logger::instance().exit(RuntimeError{
 			"unable to load animation",
 			"ResourceManager::loadAnimation name: " + name
 		});
@@ -315,7 +315,7 @@ void ResourceManager::saveSaveData(const std::string& fname, const SaveData& dat
 void ResourceManager::freeAnimation(const std::string& name) {
 	auto it = animations.find(name);
 	if (it == animations.end()) {
-		logAndExit(RuntimeError{
+		Logger::instance().exit(RuntimeError{
 			"invalid animation reference",
 			"ResourceManager::freeAnimation cannot find: " + name
 		});
@@ -332,7 +332,7 @@ void ResourceManager::freeAnimation(const std::string& name) {
 void ResourceManager::freeSpriteSheet(const std::string& name) {
 	auto it = sheets.find(name);
 	if (it == sheets.end()) {
-		logAndExit(RuntimeError{
+		Logger::instance().exit(RuntimeError{
 			"invalid spritesheet reference",
 			"ResourceManager::freeSpriteSheet cannot find: " + name
 		});

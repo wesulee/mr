@@ -1,5 +1,6 @@
 #include "ini_parser.h"
 #include "exception.h"
+#include "logger.h"
 #include <boost/filesystem.hpp>
 #include <cassert>
 #include <cctype>	// isalpha
@@ -31,7 +32,7 @@ IniParser::ValueMap IniParser::readFile(const std::string& filePath) {
 		return read(filePath);
 	}
 	catch (Exception const& e) {
-		logAndExit(e);
+		Logger::instance().exit(e);
 	}
 	throw std::runtime_error("IniParser::readFile");
 }
@@ -45,10 +46,10 @@ IniParser::ValueMap IniParser::read(const std::string& filePath) {
 	info.str.resize(1024);	// unlikely that any line would be longer than this...
 	info.values = &result;
 	if (!boost::filesystem::exists(filePath))
-		logAndExit(FileError{filePath, FileError::Err::MISSING});
+		Logger::instance().exit(FileError{filePath, FileError::Err::MISSING});
 	std::ifstream f{filePath};
 	if (!f.is_open())
-		logAndExit(FileError{filePath, FileError::Err::NOT_OPEN});
+		Logger::instance().exit(FileError{filePath, FileError::Err::NOT_OPEN});
 	info.f = &f;
 	IniParser::doRead(info);
 	return result;

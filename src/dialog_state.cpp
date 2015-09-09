@@ -4,6 +4,7 @@
 #include "exception.h"
 #include "game_data.h"
 #include "input_handler.h"
+#include "logger.h"
 #include "state_manager.h"
 #include "widget_data.h"
 #include "widget_dialog.h"
@@ -17,7 +18,7 @@ DialogState::DialogState(std::shared_ptr<StateContext> sc) : GameState(StateType
 	getCallbacks()->setEvent(DefaultCallback::event);
 
 	if (!GameData::instance().wData.dialogData) {
-		logAndExit(RuntimeError{"DialogState ctor", "null data"});
+		Logger::instance().exit(RuntimeError{"DialogState ctor", "null data"});
 		delete dialog;
 		return;
 	}

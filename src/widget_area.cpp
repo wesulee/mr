@@ -1,6 +1,7 @@
 #include "widget_area.h"
 #include "canvas.h"
 #include "exception.h"
+#include "logger.h"
 #include "widget_event.h"
 #include "widget_layout.h"
 #include <cassert>
@@ -78,14 +79,14 @@ void WidgetArea::event(WidgetEvent& e) {
 
 IntPair WidgetArea::getPrefSize() const {
 	assert(false);
-	logAndExit(RuntimeError{WidgetAreaHelper::errorMessage});
+	Logger::instance().exit(RuntimeError{WidgetAreaHelper::errorMessage});
 	return IntPair{0, 0};
 }
 
 
 IntPair WidgetArea::getMinSize() const {
 	assert(false);
-	logAndExit(RuntimeError{WidgetAreaHelper::errorMessage});
+	Logger::instance().exit(RuntimeError{WidgetAreaHelper::errorMessage});
 	return IntPair{0, 0};
 }
 
@@ -99,5 +100,5 @@ void WidgetArea::_requestResize(Widget* w, const IntPair& p) {
 
 void WidgetArea::_resize(const IntPair&, const WidgetResizeFlag) {
 	assert(false);
-	logAndExit(RuntimeError{WidgetAreaHelper::errorMessage});
+	Logger::instance().exit(RuntimeError{WidgetAreaHelper::errorMessage});
 }

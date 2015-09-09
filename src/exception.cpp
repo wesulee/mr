@@ -1,9 +1,6 @@
 #include "exception.h"
-#include "logger.h"
-#include "sdl_helper.h"
+#include "sdl_header.h"
 #include <cassert>
-#include <cstdlib>
-#include <iostream>
 
 
 static std::string makeMessage(const char* prepend, const std::string& msg, const std::string& det) {
@@ -11,22 +8,6 @@ static std::string makeMessage(const char* prepend, const std::string& msg, cons
 	if (!det.empty())
 		str += " Details: " + det + '.';
 	return str;
-}
-
-
-static void displayMessage(const Uint32 flags, const char* title, const char* message) {
-	if (SDL_ShowSimpleMessageBox(flags, title, message, SDL::window) != 0) {
-		std::cerr << "Unable to display message box." << std::endl;
-	}
-}
-
-
-void logAndExit(const Exception& e) {
-	std::cerr << "An error has occurred, see " << Logger::instance().getPath() << " for details.";
-	const std::string& str = e.what();
-	Logger::instance().log(str);
-	displayMessage(SDL_MESSAGEBOX_ERROR, "Error", str.c_str());
-	exit(EXIT_FAILURE);
 }
 
 

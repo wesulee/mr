@@ -5,6 +5,7 @@
 #include "exception.h"
 #include "font.h"
 #include "game_data.h"
+#include "logger.h"
 #include "resource_manager.h"
 #include "state_manager.h"
 #include "text_renderer.h"
@@ -47,13 +48,13 @@ static void checkFolder(const std::string& path, bool writePerm) {
 	}
 	status = fs::status(p);
 	if (!fs::is_directory(status))
-		logAndExit(FileError{path, FileError::Err::NOT_DIRECTORY});
+		Logger::instance().exit(FileError{path, FileError::Err::NOT_DIRECTORY});
 	// check permissions
 	const fs::perms perm = status.permissions();
 	if (!(perm & fs::owner_read))
-		logAndExit(FileError{path, "no read permissions"});
+		Logger::instance().exit(FileError{path, "no read permissions"});
 	if (writePerm & !(perm & fs::owner_write))
-		logAndExit(FileError{path, "no write permissions"});
+		Logger::instance().exit(FileError{path, "no write permissions"});
 }
 
 
@@ -62,9 +63,9 @@ static void checkFolderExists(const std::string& path) {
 	fs::path p{path};
 	fs::file_status status = fs::status(p);
 	if (!fs::exists(status))
-		logAndExit(FileError{path, FileError::Err::MISSING});
+		Logger::instance().exit(FileError{path, FileError::Err::MISSING});
 	if (!fs::is_directory(status))
-		logAndExit(FileError{path, FileError::Err::NOT_DIRECTORY});
+		Logger::instance().exit(FileError{path, FileError::Err::NOT_DIRECTORY});
 }
 
 

@@ -4,6 +4,9 @@
 #include <string>
 
 
+class Exception;
+
+
 class Logger {
 	Logger(Logger const&) = delete;
 	void operator=(Logger const&) = delete;
@@ -13,8 +16,10 @@ public:
 	void setPath(const std::string&);
 	const std::string& getPath(void);
 	void log(const std::string&);
+	void exit(const Exception&);
 private:
 	Logger() = default;
+	std::ofstream& begin(void);
 	static std::string getTimestamp(void);
 
 	std::ofstream os;

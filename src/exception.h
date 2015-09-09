@@ -25,11 +25,6 @@ namespace SDLFunc {
 }
 
 
-// forward declarations
-class Exception;
-void logAndExit(const Exception&);
-
-
 class Exception {
 public:
 	Exception() = default;

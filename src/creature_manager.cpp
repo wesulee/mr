@@ -4,6 +4,7 @@
 #include "exception.h"
 #include "game_data.h"
 #include "json_data.h"
+#include "logger.h"
 #include "parameters.h"
 #include "player.h"
 #include "resource_manager.h"
@@ -110,7 +111,7 @@ void CreatureManager::loadRoom(std::shared_ptr<RoomData> rd) {
 	for (auto& cd : rd->creatures) {
 		cd.type = getCreatureType(cd.name);
 		if (cd.type == CreatureType::NONE) {
-			logAndExit(RuntimeError{
+			Logger::instance().exit(RuntimeError{
 				"error loading room",
 				"CreatureManager::loadRoom creature \"" + cd.name + "\" invalid"
 			});

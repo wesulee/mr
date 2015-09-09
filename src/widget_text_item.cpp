@@ -1,6 +1,7 @@
 #include "widget_text_item.h"
 #include "canvas.h"
 #include "exception.h"
+#include "logger.h"
 #include "sdl_helper.h"
 #include "widget_text_list_view.h"
 #include <cassert>
@@ -84,6 +85,6 @@ TextListView* TextItem::getParent2() {
 	assert(_getParent() != nullptr);
 	TextListView* ret;
 	if ((_getParent() == nullptr) || ((ret = dynamic_cast<TextListView*>(_getParent())) == nullptr))
-		logAndExit(RuntimeError{"TextItem null or invalid parent"});
+		Logger::instance().exit(RuntimeError{"TextItem null or invalid parent"});
 	return ret;
 }
