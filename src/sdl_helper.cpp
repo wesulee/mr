@@ -244,6 +244,14 @@ void SDL::queryTexture(SDL_Texture* tex, Uint32* format, int* access, int* w, in
 }
 
 
+TTF_Font* SDL::openFont(const std::string& path, const int sz) {
+	TTF_Font* font = TTF_OpenFont(path.c_str(), sz);
+	if (font == nullptr)
+		Logger::instance().exit(SDLError{"unable to open font", SDLFunc::TTF_OpenFont});
+	return font;
+}
+
+
 void SDL::glyphMetrics(TTF_Font* f, Uint16 c, int* minX, int* maxX, int* minY, int* maxY, int* advance) {
 	if (TTF_GlyphMetrics(f, c, minX, maxX, minY, maxY, advance) != 0)
 		Logger::instance().exit(SDLError{"glyph metrics failure", SDLFunc::TTF_GlyphMetrics});

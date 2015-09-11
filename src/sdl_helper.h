@@ -42,6 +42,7 @@ public:
 	static SDL_Surface* loadBMP(const std::string&);
 	static void getDim(SDL_Texture*, int&, int&);
 	static void queryTexture(SDL_Texture*, Uint32*, int*, int*, int*);
+	static TTF_Font* openFont(const std::string&, const int);
 	static void glyphMetrics(TTF_Font*, Uint16, int*, int*, int*, int*, int*);
 	static void setAlpha(SDL_Texture*, const Uint8);
 	static SDL_Window* createWindow(const char*, const int, const int, const int, const int, const Uint32);

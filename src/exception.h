@@ -21,6 +21,7 @@ namespace SDLFunc {
 	constexpr char SDL_SetRenderDrawBlendMode[] = "SDL_SetRenderDrawBlendMode";
 	constexpr char SDL_SetTextureAlphaMod[] = "SDL_SetTextureAlphaMod";
 	constexpr char TTF_GlyphMetrics[] = "TTF_GlyphMetrics";
+	constexpr char TTF_OpenFont[] = "TTF_OpenFont";
 	constexpr char TTF_RenderText_[] = "TTF_RenderText_*";
 	constexpr char TTF_SizeText[] = "TTF_SizeText";
 }
