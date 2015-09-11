@@ -57,6 +57,7 @@ IniParser::ValueMap IniParser::read(const std::string& filePath) {
 
 
 void IniParser::doRead(IniRead& info) {
+	info.error.setLine(0);
 	while (*info.f) {
 		info.error.incLine();
 		readLine(info);

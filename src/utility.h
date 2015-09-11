@@ -29,6 +29,12 @@ static bool cmpPair(const T& a, const T& b) {
 
 
 inline
+std::string q(const std::string& str) {
+	return (std::string{'\"'} + str + '\"');
+}
+
+
+inline
 void copyDim(SDL_Surface* surf, SDL_Rect& r) {
 	r.w = surf->w;
 	r.h = surf->h;

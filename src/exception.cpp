@@ -1,12 +1,23 @@
 #include "exception.h"
 #include "sdl_header.h"
+#include "utility.h"	// q
 #include <cassert>
+#include <limits>
+
+
+namespace ExceptionHelper {
+	constexpr std::size_t defaultLine = std::numeric_limits<std::size_t>::max();
+	constexpr std::size_t defaultOffset = defaultLine;
+}
 
 
 static std::string makeMessage(const char* prepend, const std::string& msg, const std::string& det) {
 	std::string str = prepend + msg + '.';
-	if (!det.empty())
-		str += " Details: " + det + '.';
+	if (!det.empty()) {
+		str += " Details: " + det;
+		if (str.back() != '.')
+			str += '.';
+	}
 	return str;
 }
 
@@ -39,7 +50,10 @@ BadData::BadData(const std::string& msg, const std::string& det) : message(msg),
 
 
 std::string BadData::what() const {
-	return makeMessage("BadData: ", message, details);
+	if (filePath.empty())
+		return makeMessage("BadData: ", message, details);
+	else
+		return makeMessage("BadData: ", "file " + q(filePath) + ' ' + message, details);
 }
 
 
@@ -68,30 +82,39 @@ FileError::FileError(const std::string& file, const Err etype, const std::string
 
 
 std::string FileError::what() const {
-	return makeMessage("FileError: ", "file \"" + filePath + "\" " + message, details);
+	return makeMessage("FileError: ", "file " + q(filePath) + ' ' + message, details);
 }
 
 
-ParserError::ParserError(const DataType t) : type(t) {
+ParserError::ParserError(const DataType t) : line(ExceptionHelper::defaultLine),
+offset(ExceptionHelper::defaultOffset), type(t) {
 }
 
 
 std::string ParserError::what() const {
-	std::string prepend;
+	std::string str{"type "};
 	switch (type) {
 	case DataType::INI:
-		prepend += "ini";
+		str += "INI";
 		break;
 	case DataType::JSON:
-		prepend += "json";
+		str += "JSON";
 		break;
 	default:
 		assert(false);
+		str += "???";
 	}
-	prepend += " ParserError: file \"";
-	prepend += filePath;
-	prepend += "\" (line " + std::to_string(line) + ") ";
-	return makeMessage(prepend.c_str(), message, details);
+	str += " file ";
+	str += q(filePath);
+	str += ' ';
+	if (line != ExceptionHelper::defaultLine) {
+		str += "(line " + std::to_string(line) + ") ";
+	}
+	else if (offset != ExceptionHelper::defaultOffset) {
+		str += "(offset " + std::to_string(offset) + ") ";
+	}
+	str += message;
+	return makeMessage("ParserError: ", str, details);
 }
 
 
@@ -111,6 +134,11 @@ void ParserError::setType(const DataType t) {
 }
 
 
-void ParserError::setLine(const int n) {
+void ParserError::setLine(const std::size_t n) {
 	line = n;
+}
+
+
+void ParserError::setOffset(const std::size_t n) {
+	offset = n;
 }
