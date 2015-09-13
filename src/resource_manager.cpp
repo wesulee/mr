@@ -22,8 +22,8 @@
 #include <cassert>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
-#include <stdexcept>
 #include <vector>
 #define BOOST_FILESYSTEM_NO_DEPRECATED
 
@@ -104,7 +104,7 @@ std::shared_ptr<RoomData> ResourceManager::getRoomData(const int x, const int y)
 	std::string filePath = getPath(ResourceType::ROOM, roomToString(x, y));
 	std::shared_ptr<RoomData> rd = JSONReader::loadRoom(filePath);
 	if (!rd)
-		throw std::runtime_error(JSONReader::getError());
+		Logger::instance().exit(RuntimeError{"unable to load room", roomToString(x, y)});
 	return rd;
 }
 
@@ -113,7 +113,7 @@ std::shared_ptr<CreatureData> ResourceManager::getCreatureData(const std::string
 	std::string filePath = getPath(ResourceType::CREATURE, name);
 	std::shared_ptr<CreatureData> data = JSONReader::loadCreature(filePath);
 	if (!data)
-		throw std::runtime_error(JSONReader::getError());
+		Logger::instance().exit(RuntimeError{"unable to load creature", name});
 	return data;
 }
 
@@ -347,7 +347,6 @@ void ResourceManager::freeSpriteSheet(const std::string& name) {
 
 
 // caller must free returned surface, but not texture
-// throws exception on error
 std::pair<SDL_Surface*, SDL_Texture*> ResourceManager::loadImage(const std::string& name) {
 	assert(textures.find(name) == textures.end());
 	std::pair<SDL_Surface*, SDL_Texture*> ret;
@@ -381,13 +380,12 @@ SDL_Texture* ResourceManager::autoLoadImage(const std::string& name) {
 }
 
 
-// throws exception on error
 SpriteSheet* ResourceManager::loadSpriteSheet(const std::string& name) {
 	assert(sheets.find(name) == sheets.end());
 	std::string filePath = getPath(ResourceType::SPRITE, name);
 	std::shared_ptr<SpriteSheetData> data = JSONReader::loadSpriteSheet(filePath);
 	if (!data)
-		throw std::runtime_error(JSONReader::getError());
+		Logger::instance().exit(RuntimeError{"unable to load spritesheet", name});
 	// load image
 	SDL_Texture* tex = autoLoadImage(data->image);
 	SpriteSheet* ss = new SpriteSheet{tex, name};
@@ -403,7 +401,7 @@ SpriteSheet* ResourceManager::loadSpriteSheet(const std::string& name) {
 #ifndef NDEBUG
 		if ((it->second.x + it->second.w > width) || (it->second.y + it->second.h > height)) {
 			// log if sprite boundary not within bounds, but keep processing
-			Logger::instance().log("ResourceManager::loadSpriteSheet " + name + ',' + it->first + " exceeds bounds");
+			std::cerr << "ResourceManager::loadSpriteSheet " + name + ',' + it->first + " exceeds bounds";
 		}
 #endif // NDEBUG
 		ss->add(it->first, it->second);
@@ -470,12 +468,7 @@ void ResourceManager::decTextureRef(const std::string& name) {
 
 TTF_Font* ResourceManager::openFont(const Font& font) {
 	std::string filePath = getPath(ResourceType::FONT, font.name);
-	TTF_Font* f = TTF_OpenFont(filePath.c_str(), font.size);
-	if (f == nullptr) {
-		SDL::logError("ResourceManager::openFont TTF_OpenFont");
-		throw std::invalid_argument("unable to open font");
-	}
-	return f;
+	return SDL::openFont(filePath, font.size);
 }
 
 
