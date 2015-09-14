@@ -1,7 +1,9 @@
 #include "logger.h"
+#include "console.h"
 #include "constants.h"
 #include "exception.h"
 #include "sdl_helper.h"
+#include "utility.h"	// q
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -19,7 +21,7 @@ void Logger::setPath(const std::string& s) {
 	path = s;
 	os = std::ofstream{path, std::ofstream::out | std::ofstream::app};
 	if (!os) {
-		std::cerr << "Unable to open log file \"" << path << '\"' << std::endl;
+		std::cerr << "Unable to open log file " << q(path) << std::endl;
 		//! ...
 	}
 }
@@ -31,11 +33,19 @@ void Logger::log(const std::string& msg) {
 }
 
 
+void Logger::log(const Exception& e) {
+	std::string what = e.what();
+	Console::begin() << what << std::endl;
+	log(what);
+}
+
+
 void Logger::exit(const Exception& e) {
-	std::cerr << "An error has occurred, see \"" << path << "\" for details." << std::endl;
-	const std::string& str = e.what();
-	log(str);
-	displayMessage(SDL_MESSAGEBOX_ERROR, "Error", str.c_str());
+	std::string what = e.what();
+	Console::begin() << what << std::endl;
+	std::cerr << std::endl << "An error has occurred, see " << q(path) << " for details." << std::endl;
+	log(what);
+	displayMessage(SDL_MESSAGEBOX_ERROR, "Error", what.c_str());
 	std::exit(EXIT_FAILURE);
 }
 

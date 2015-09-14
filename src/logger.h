@@ -16,6 +16,7 @@ public:
 	void setPath(const std::string&);
 	const std::string& getPath(void);
 	void log(const std::string&);
+	void log(const Exception&);
 	void exit(const Exception&);
 private:
 	Logger() = default;
