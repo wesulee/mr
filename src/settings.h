@@ -9,11 +9,10 @@
 namespace SettingsSettings {
 	typedef unsigned int index_type;
 	// indices of bitset
-	enum class Index : index_type {SAVEDIRABS=0, VSYNC, DISPLAYFPS, PAUSEFOCUSLOST};
+	enum class Index : index_type {VSYNC=0, DISPLAYFPS, PAUSEFOCUSLOST};
 	constexpr char defaultDataDir[] = "data";
 	constexpr char defaultSaveDir[] = "save";
 	// default flag values
-	constexpr bool fSaveDirAbs = false;
 	constexpr bool fVsync = true;
 	constexpr bool fDisplayFPS = false;
 	constexpr bool fPauseFocusLost = true;

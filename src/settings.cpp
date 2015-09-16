@@ -4,13 +4,16 @@
 #include "ini_parser.h"
 #include "logger.h"
 #include "sdl_helper.h"
+#include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <boost/version.hpp>
 #include <iostream>
 #include <sstream>
+#define BOOST_FILESYSTEM_NO_DEPRECATED
 
 
+namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 
 
@@ -25,7 +28,6 @@ void setupArguments(const int, char**, po::variables_map&);
 void procImmediateArgs(po::variables_map&);
 void procIni(Settings&);
 void procArguments(po::variables_map&, Settings&);
-void finalizePaths(Settings&);
 void printAbout(std::ostream&);
 void printDrivers(std::ostream&);
 void printSDLError(std::ostream&);
@@ -40,9 +42,6 @@ void setFlag(const IniParser::ValueMap& map, const char* name, T& bitset, std::s
 			bitset.set(index, *val);
 	}
 }
-
-
-// implementation
 
 
 // notify that something exceptional happened, not necessarily an error
@@ -140,16 +139,17 @@ void procIni(Settings& settings) {
 	IniParser::ValueMap iniMap = IniParser::readFile(settings.rootPath + Constants::iniFileName);
 	auto it = iniMap.find("DataDir");
 	if (it != iniMap.end())
-		settings.dataPath = it->second;
+		settings.dataPath = fs::absolute(it->second, settings.rootPath).string();
 	else
-		settings.dataPath = defaultDataDir;
+		settings.dataPath = fs::absolute(defaultDataDir, settings.rootPath).string();
 	it = iniMap.find("SaveDir");
 	if (it != iniMap.end())
-		settings.savePath = it->second;
+		settings.savePath = fs::absolute(it->second, settings.rootPath).string();
+	else
+		settings.savePath = fs::absolute(defaultSaveDir, settings.rootPath).string();
 	it = iniMap.find("Renderer");
 	if (it != iniMap.end())
 		settings.renderer = it->second;
-	setFlag(iniMap, "SaveDirAbs", settings.flags, toIndex(Index::SAVEDIRABS));
 	setFlag(iniMap, "Vsync", settings.flags, toIndex(Index::VSYNC));
 	setFlag(iniMap, "DisplayFPS", settings.flags, toIndex(Index::DISPLAYFPS));
 	setFlag(iniMap, "PauseFocusLost", settings.flags, toIndex(Index::PAUSEFOCUSLOST));
@@ -158,27 +158,9 @@ void procIni(Settings& settings) {
 
 void procArguments(po::variables_map& vm, Settings& settings) {
 	using namespace SettingsSettings;
-	// NOTE: savedir argument is treated as absolute path
 	if (vm.count("savedir")) {
-		settings.flags.set(toIndex(Index::SAVEDIRABS));
-		settings.savePath = vm["savedir"].as<std::string>();
-	}
-}
-
-
-void finalizePaths(Settings& settings) {
-	using namespace SettingsSettings;
-	// make data absolute path
-	if (settings.dataPath.empty())	// data path never set
-		settings.dataPath = settings.rootPath + defaultDataDir;	// default data path
-	else
-		settings.dataPath = settings.rootPath + settings.dataPath;
-	// if not savePath not absolute, make path absolute
-	if (!settings.flags.test(toIndex(Index::SAVEDIRABS))) {
-		if (settings.savePath.empty())
-			settings.savePath = settings.rootPath + defaultSaveDir;	// default save path
-		else
-			settings.savePath = settings.rootPath + settings.savePath;
+		// arguments provided by command-line override ini file
+		settings.savePath = fs::absolute(vm["savedir"].as<std::string>()).string();
 	}
 }
 
@@ -249,7 +231,6 @@ void printSDLError(std::ostream& os) {
 Settings::Settings(int argc, char** argv) {
 	using namespace SettingsSettings;
 	using namespace SettingsHelper;
-	SET_FLAG(flags, toIndex(Index::SAVEDIRABS), fSaveDirAbs);
 	SET_FLAG(flags, toIndex(Index::VSYNC), fVsync);
 	SET_FLAG(flags, toIndex(Index::DISPLAYFPS), fDisplayFPS);
 	SET_FLAG(flags, toIndex(Index::PAUSEFOCUSLOST), fPauseFocusLost);
@@ -271,7 +252,6 @@ Settings::Settings(int argc, char** argv) {
 	}
 	// finish processing arguments
 	procArguments(vm, *this);
-	finalizePaths(*this);
 }
 
 
