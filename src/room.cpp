@@ -6,163 +6,240 @@
 #include "json_data.h"
 #include "logger.h"
 #include "resource_manager.h"
+#include "sprite.h"
 #include "sprite_sheet.h"
 #include "shapes.h"
 #include <cassert>
-#include <stdexcept>
 
 
-class RoomWorkDraw;
-static bool drawConnTickNS(RoomWorkDraw&);
-static bool drawConnTickWE(RoomWorkDraw&);
+namespace RoomConnHelper {
+	constexpr char sprNN[] = "nr_n";
+	constexpr char sprNS[] = "nr_s";
+	constexpr char sprNW[] = "nr_w";
+	constexpr char sprNE[] = "nr_e";
+}
 
 
-class RoomWorkDraw : public RoomWork {
-public:
-	RoomWorkDraw(const Side, const std::vector<std::pair<int, int>>*, SpriteSheet*);
-	~RoomWorkDraw() {/* do nothing */}
-	bool tick(void) override;
-	void finish(void) override;
-	static void setSurfaces(SDL_Surface*, SDL_Surface*);
-
-	static SDL_Surface* srcSurf;
-	static SDL_Surface* dstSurf;
-	SDL_Rect srcRect;
-	SDL_Rect dstRect;
-	bool (*doTick)(RoomWorkDraw&);
-	const std::vector<std::pair<int, int>>* pairs;
-	std::size_t index = 0;
-	int drawLeft;
-	float cur;
-	float increment;
-	bool inPair = false;
-};
-
-
-SDL_Surface* RoomWorkDraw::srcSurf = nullptr;
-SDL_Surface* RoomWorkDraw::dstSurf = nullptr;
-
-
-//! TODO incomplete implementation
-RoomWorkDraw::RoomWorkDraw(const Side s, const std::vector<std::pair<int, int>>* p, SpriteSheet* ss)
-: pairs(p) {
-	// Note: these positions are relative to the surface, not screen
-	switch (s) {
-	case Side::NORTH:
-		doTick = drawConnTickNS;
-		srcRect = ss->getBounds("nr_n");
-		dstRect.y = 0;
-		break;
-	case Side::SOUTH:
-		doTick = drawConnTickNS;
-		srcRect = ss->getBounds("nr_s");
-		dstRect.y = Constants::roomHeight - 1 - srcRect.h;
-		break;
-	case Side::WEST:
-		doTick = drawConnTickWE;
-		srcRect = ss->getBounds("nr_w");
-		dstRect.x = 0;
-		break;
-	case Side::EAST:
-		doTick = drawConnTickWE;
-		srcRect = ss->getBounds("nr_e");
-		dstRect.x = Constants::roomWidth - 1 - srcRect.w;
-		break;
+RoomConnections::~RoomConnections() {
+	// don't delete sprData
+	for (std::size_t i = 0; i < 4; ++i) {
+		for (auto& p : conn[i]) {
+			SDL::freeNull(p.tex);
+		}
 	}
-	dstRect.w = srcRect.w;
-	dstRect.h = srcRect.h;
 }
 
 
-bool RoomWorkDraw::tick() {
-	return doTick(*this);
+// Note: north/south grow horiz, west/east grow vert
+void RoomConnections::draw(Canvas& can) {
+	for (std::size_t i = 0; i < 4; ++i) {
+		switch (static_cast<Side>(i)) {
+		case Side::NORTH:
+			drawNS(can, conn[i], 0, 0);
+			break;
+		case Side::SOUTH:
+			drawNS(can, conn[i], 0, Constants::roomHeight - sprData->szNS.second);
+			break;
+		case Side::WEST:
+			drawWE(can, conn[i], 0, 0);
+			break;
+		case Side::EAST:
+			drawWE(can, conn[i], (Constants::roomWidth - sprData->szWE.first), 0);
+			break;
+		}
+	}
 }
 
 
-void RoomWorkDraw::finish() {
-	while (!tick())
-		;
+void RoomConnections::set(RoomData& rd, RoomConnSpriteData* sd) {
+	sprData = sd;
+	RoomConnection tmp;
+	for (std::size_t i = 0; i < 4; ++i) {
+		for (const auto& p : rd.connecting[i]) {
+			tmp.pos = p;
+			conn[i].push_back(tmp);
+		}
+	}
 }
 
 
-void RoomWorkDraw::setSurfaces(SDL_Surface* src, SDL_Surface* dst) {
-	srcSurf = src;
-	dstSurf = dst;
+// Generate textures
+void RoomConnections::render() {
+	//! TODO draw cleared when needed
+	SDL_Rect dst;
+	SDL_Surface* surf;
+	Sprite spr;
+	bool isNS;
+	for (std::size_t i = 0; i < 4; ++i) {
+		switch (static_cast<Side>(i)) {
+		case Side::NORTH:
+			spr = sprData->ss->get(RoomConnHelper::sprNN);
+			isNS = true;
+			break;
+		case Side::SOUTH:
+			spr = sprData->ss->get(RoomConnHelper::sprNS);
+			isNS = true;
+			break;
+		case Side::WEST:
+			spr = sprData->ss->get(RoomConnHelper::sprNW);
+			isNS = false;
+			break;
+		case Side::EAST:
+			spr = sprData->ss->get(RoomConnHelper::sprNE);
+			isNS = false;
+			break;
+		}
+		dst.x = 0;
+		dst.y = 0;
+		dst.w = spr.width();
+		dst.h = spr.height();
+		for (auto& p : conn[i]) {
+			unsigned int count;
+			if (isNS) {
+				surf = SDL::newSurface32(p.pos.second - p.pos.first + 1, spr.height());
+				count = static_cast<decltype(count)>(surf->w / spr.width());
+				float cur = 0;
+				float delta = (static_cast<float>(surf->w) / count);
+				for (unsigned int j = 0; j < count; ++j) {
+					if (j == (count-1)) {
+						dst.x = (surf->w - spr.width());
+						SDL_BlitSurface(sprData->surf, spr.getTextureBounds(), surf, &dst);
+					}
+					else {
+						SDL_BlitSurface(sprData->surf, spr.getTextureBounds(), surf, &dst);
+						cur += delta;
+						dst.x = static_cast<int>(cur);
+					}
+				}
+			}
+			else {
+				surf = SDL::newSurface32(spr.width(), p.pos.second - p.pos.first + 1);
+				count = static_cast<decltype(count)>(surf->h / spr.height());
+				float cur = 0;
+				float delta = (static_cast<float>(surf->h) / count);
+				for (unsigned int j = 0; j < count; ++j) {
+					if (j == (count-1)) {
+						dst.y = (surf->h - spr.height());
+						SDL_BlitSurface(sprData->surf, spr.getTextureBounds(), surf, &dst);
+					}
+					else {
+						SDL_BlitSurface(sprData->surf, spr.getTextureBounds(), surf, &dst);
+						cur += delta;
+						dst.y = static_cast<int>(cur);
+					}
+				}
+			}
+			p.tex = SDL::toTexture(surf);
+		}
+	}
+}
+
+
+void RoomConnections::drawNS(Canvas& can, std::vector<RoomConnection>& vec, const int x, const int y) {
+	SDL_Rect r;
+	r.y = y;
+	r.h = sprData->szNS.second;
+	for (auto& p : vec) {
+		r.x = (x + p.pos.first);
+		r.w = (p.pos.second - p.pos.first + 1);
+		can.draw(p.tex, &r);
+	}
+}
+
+
+void RoomConnections::drawWE(Canvas& can, std::vector<RoomConnection>& vec, const int x, const int y) {
+	SDL_Rect r;
+	r.x = x;
+	r.w = sprData->szWE.first;
+	for (auto& p : vec) {
+		r.y = (y + p.pos.first);
+		r.h = (p.pos.second - p.pos.first + 1);
+		can.draw(p.tex, &r);
+	}
+}
+
+
+RoomStruct::~RoomStruct() {
+	SDL::freeNull(bgSurf);
+	SDL::freeNull(bgTex);
 }
 
 
 Room::Room() {
+	sprData.surf = GameData::instance().resources->getDefaultSurface();
+	sprData.ss = GameData::instance().resources->getSpriteSheet("default");
+	Sprite sprConn = sprData.ss->get(RoomConnHelper::sprNN);
+	sprData.szNS.first = sprConn.width();
+	sprData.szNS.second = sprConn.height();
+	sprConn = sprData.ss->get(RoomConnHelper::sprNW);
+	sprData.szWE.first = sprConn.width();
+	sprData.szWE.second = sprConn.height();
 	drawRect.x = Constants::RoomX;
 	drawRect.y = Constants::RoomY;
 	drawRect.w = Constants::roomWidth;
 	drawRect.h = Constants::roomHeight;
-	block.setBounds(
-		// block is 1 pixel longer on each side to add 4 block rects
-		// to surround drawRect
-		Rectangle{
-			drawRect.x - 1,
-			drawRect.y - 1,
-			drawRect.w + 2,
-			drawRect.h + 2
-		}
-	);
 }
 
 
 Room::~Room() {
-	SDL::freeNull(bgSurf);
-	SDL::freeNull(bgTex);
+	if (room != nullptr)
+		delete room;
 }
 
 
 void Room::draw(Canvas& can) {
-	can.draw(bgTex, &drawRect);
+	assert(room != nullptr);
+	can.draw(room->bgTex, &drawRect);
 #if defined(DEBUG_ROOM_BLOCK) && DEBUG_ROOM_BLOCK
-	block.draw(can);
+	room->block.draw(can);
 #endif
+	if (cleared) {
+		can.setViewport(drawRect);
+		room->connections.draw(can);
+		can.clearViewport();
+	}
 }
 
 
 void Room::set(RoomData& rd) {
-	for (std::size_t i = 0; i < 4; ++i)
-		connecting[i].clear();
+	assert(room == nullptr);
+	room = new RoomStruct;
+	room->block.setBounds(Rectangle{
+		// block is 1 pixel longer on each side to add 4 block rects
+		// to surround drawRect
+		Constants::RoomX - 1,
+		Constants::RoomY - 1,
+		Constants::roomWidth + 2,
+		Constants::roomHeight + 2
+	});
 	// add rectangles around edges of block
-	const auto& bounds = block.getBounds();
+	const auto& bounds = room->block.getBounds();
 	test.resize(bounds.width(), 1);
 	test.move(bounds.getX(), bounds.getY());
-	block.insert(test);	// top
+	room->block.insert(test);	// top
 	test.move(test.getX(), test.getY() + bounds.height() - 1);
-	block.insert(test);	// bottom
+	room->block.insert(test);	// bottom
 	test.resize(1, bounds.height());
 	test.move(bounds.getX(), bounds.getY());
-	block.insert(test);	// left
+	room->block.insert(test);	// left
 	test.move(test.getX() + bounds.width() - 1 , test.getY());
-	block.insert(test);	// right
+	room->block.insert(test);	// right
 	// add room
 	for (const auto& r : rd.block) {
 		test.resize(r.w, r.h);
 		test.move(Constants::RoomX + r.x, Constants::RoomY + r.y);
-		block.insert(test);
+		room->block.insert(test);
 	}
 	// set background image
-	SDL::freeNull(bgSurf);
-	SDL::freeNull(bgTex);
-	bgSurf = GameData::instance().resources->generateSurface(rd);
-	bgTex = SDL::newTexture(bgSurf);
-	SpriteSheet* ss = GameData::instance().resources->getSpriteSheet("default");
-	RoomWorkDraw::setSurfaces(GameData::instance().resources->getDefaultSurface(), bgSurf);
-	for (const auto s : {Side::NORTH, Side::SOUTH, Side::WEST, Side::EAST}) {
-		connecting[SideToIndex(s)].swap(rd.connecting[SideToIndex(s)]);
-		if (!connecting[SideToIndex(s)].empty())
-			worker.add(new RoomWorkDraw{s, connecting + SideToIndex(s), ss});
-	}
-	assert(!worker.empty());	// no connecting rooms
+	room->bgSurf = GameData::instance().resources->generateSurface(rd);
+	room->bgTex = SDL::newTexture(room->bgSurf);
+	room->connections.set(rd, &sprData);
 }
 
 
 bool Room::space(const int x, const int y, const int w, const int h) const {
 	test.set(x, y, w, h);
-	return !block.collides(test);
+	return !room->block.collides(test);
 }
 
 
@@ -195,68 +272,6 @@ void Room::updateEntity(GameEntity& entity, const int x, const int y) const {
 
 
 void Room::notifyClear() {
-	// finish remaining work now
-	if (!worker.empty())
-		worker.finish();
-	// update background
-	SDL::free(bgTex);
-	bgTex = SDL::newTexture(bgSurf);
-}
-
-
-static bool drawConnTickNS(RoomWorkDraw& w) {
-	if (w.inPair) {	// draw
-		w.dstRect.x = static_cast<int>(w.cur);
-		if (SDL_BlitSurface(w.srcSurf, &(w.srcRect), w.dstSurf, &(w.dstRect)) != 0) {
-			SDL::logError("drawConnTickNS SDL_BlitSurface");
-		}
-		w.cur += w.increment;
-		--(w.drawLeft);
-		if (w.drawLeft == 0)
-			w.inPair = false;
-	}
-	else {	// setup
-		if (w.index == w.pairs->size())
-			return true;
-		const int width = (*w.pairs)[w.index].second - (*w.pairs)[w.index].first;
-		w.drawLeft = width / w.srcRect.w;
-		if (w.drawLeft < 2)
-			throw std::runtime_error("drawConnTickNS drawLeft low");
-		// draw rects along edges and then evenly space between
-		w.cur = (*w.pairs)[w.index].first;
-		const float avgPadding = static_cast<float>(width - (w.drawLeft * w.srcRect.w)) / (w.drawLeft - 1);
-		w.increment = avgPadding + w.srcRect.w;
-		w.inPair = true;
-		++(w.index);
-	}
-	return false;
-}
-
-
-static bool drawConnTickWE(RoomWorkDraw& w) {
-	if (w.inPair) {	// draw
-		w.dstRect.y = static_cast<int>(w.cur);
-		if (SDL_BlitSurface(w.srcSurf, &(w.srcRect), w.dstSurf, &(w.dstRect)) != 0) {
-			SDL::logError("drawConnTickNS SDL_BlitSurface");
-		}
-		w.cur += w.increment;
-		--(w.drawLeft);
-		if (w.drawLeft == 0)
-			w.inPair = false;
-	}
-	else {	// setup
-		if (w.index == w.pairs->size())
-			return true;
-		const int height = (*w.pairs)[w.index].second - (*w.pairs)[w.index].first;
-		w.drawLeft = height / w.srcRect.h;
-		if (w.drawLeft < 2)
-			throw std::runtime_error("drawConnTickWE drawLeft low");
-		// draw rects along edges and then evenly space between
-		w.cur = (*w.pairs)[w.index].first;
-		const float avgPadding = static_cast<float>(height - (w.drawLeft * w.srcRect.h)) / (w.drawLeft - 1);
-		w.increment = avgPadding + w.srcRect.h;
-		w.inPair = true;
-		++(w.index);
-	}
-	return false;
+	room->connections.render();
+	cleared = true;
 }
