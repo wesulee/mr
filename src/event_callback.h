@@ -34,10 +34,12 @@ namespace DefaultCallback {
 namespace CommonCallback {
 	void setDefaults(EventCallbackCollection* const);
 
-	void popState(const KeyEvent&);
-	void popState2(void);
-	void pushState(const KeyEvent&, const StateType);
+	void popState(void);
+	void popStateK(const KeyEvent&);
+	void pushState(const StateType);
+	void pushStateK(const KeyEvent&, const StateType);
 	void switchTo(const StateType);
+	void setState(const StateType);
 	void quit(void);
 }
 

@@ -25,7 +25,7 @@ namespace LoadMenuSettings {
 LoadMenu::LoadMenu(std::shared_ptr<StateContext> sc) : GameState(StateType::LOAD_MENU, sc) {
 	using namespace MenuSettings;
 	using std::placeholders::_1;
-	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popState);
+	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popStateK);
 	getCallbacks()->setDefaultKey(DefaultCallback::key);
 	getCallbacks()->setMouse(DefaultCallback::mouse);
 	getCallbacks()->setEvent(DefaultCallback::event);

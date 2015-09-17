@@ -44,8 +44,8 @@ static void addButton(VerticalLayout* layout, T style, const char* str, ButtonCa
 GameMenu::GameMenu(std::shared_ptr<StateContext> sc) : GameState(StateType::GAME_MENU, sc) {
 	using namespace GameMenuSettings;
 	assert(sc->mIntInt.count(Parameters::MAIN_GAME_IS_RUNNING));
-	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popState);
-	getCallbacks()->setKey(SDLK_p, CommonCallback::popState);
+	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popStateK);
+	getCallbacks()->setKey(SDLK_p, CommonCallback::popStateK);
 	getCallbacks()->setDefaultKey(DefaultCallback::key);
 	getCallbacks()->setMouse(DefaultCallback::mouse);
 	getCallbacks()->setEvent(DefaultCallback::event);
@@ -69,7 +69,7 @@ GameMenu::GameMenu(std::shared_ptr<StateContext> sc) : GameState(StateType::GAME
 	style->alphaOut = alphaBtnOut;
 	style->alphaOver = alphaBtnOver;
 	style->alphaDown = alphaBtnDown;
-	addButton(layout, style, "Resume", CommonCallback::popState2);
+	addButton(layout, style, "Resume", CommonCallback::popState);
 	if (!sc->mIntInt.at(Parameters::MAIN_GAME_IS_RUNNING))
 		addButton(layout, style, "Save", std::bind(&self_type::saveCallback, this));
 	addButton(layout, style, "Load", std::bind(CommonCallback::switchTo, StateType::LOAD_MENU));

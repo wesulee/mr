@@ -50,7 +50,7 @@ static void addButton(Layout layout, Style style, const char* str, ButtonCallbac
 SaveMenu::SaveMenu(std::shared_ptr<StateContext> sc) : GameState(StateType::SAVE_MENU, sc) {
 	using namespace SaveMenuSettings;
 	using std::placeholders::_1;
-	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popState);
+	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popStateK);
 	getCallbacks()->setDefaultKey(DefaultCallback::key);
 	getCallbacks()->setMouse(DefaultCallback::mouse);
 	getCallbacks()->setEvent(DefaultCallback::event);
@@ -80,7 +80,7 @@ SaveMenu::SaveMenu(std::shared_ptr<StateContext> sc) : GameState(StateType::SAVE
 	layoutH->setWidgetAlignment(WidgetAlignmentHoriz::RIGHT, WidgetAlignmentVert::TOP);
 	layoutH->setSpacing(btnSpacing);
 	addButton(layoutH, style, "Save", std::bind(&self_type::saveButtonCallback, this));
-	addButton(layoutH, style, "Cancel", CommonCallback::popState2);
+	addButton(layoutH, style, "Cancel", CommonCallback::popState);
 	layoutV->add(view);
 	layoutV->add(textEdit);
 	layoutV->add(layoutH);

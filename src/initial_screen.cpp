@@ -72,7 +72,7 @@ static void checkFolderExists(const std::string& path) {
 InitialScreen::InitialScreen(std::shared_ptr<StateContext> sc) : GameState(StateType::INIT, sc), bar(new ProgressBar) {
 	using namespace InitialScreenSettings;
 	CommonCallback::setDefaults(getCallbacks());
-	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popState);
+	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popStateK);
 	counter.setMaxTicks(jobs);
 	bar->setPrefSize(IntPair{Constants::WSizeExpand, Constants::WSizeExpand});
 	bar->setBackgroundColor(colBg);

@@ -57,7 +57,7 @@ public:
 	GameState* get(const std::size_t);
 	bool empty(void) const;	// is there an active GameState?
 	// is there an event that has not been processed yet?
-	bool stateChangeWaiting(void) const;
+	bool eventWaiting(void) const;
 private:
 	void addEvent(EventData*);
 	void processPush(EventData*);
@@ -108,6 +108,6 @@ bool StateManager::empty() const {
 
 
 inline
-bool StateManager::stateChangeWaiting() const {
+bool StateManager::eventWaiting() const {
 	return (futureEvent != nullptr);
 }

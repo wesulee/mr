@@ -42,7 +42,7 @@ static void addButton(Layout layout, Style style, const char* str, ButtonCallbac
 MainMenu::MainMenu(std::shared_ptr<StateContext> sc) : GameState(StateType::MENU, sc) {
 	using namespace MainMenuSettings;
 	getCallbacks()->setDefaultKey(DefaultCallback::key);
-	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popState);
+	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popStateK);
 	getCallbacks()->setMouse(DefaultCallback::mouse);
 	getCallbacks()->setEvent(DefaultCallback::event);
 
@@ -71,8 +71,8 @@ MainMenu::MainMenu(std::shared_ptr<StateContext> sc) : GameState(StateType::MENU
 	style->colBgOut = colBtnBgOut;
 	style->colBgOver = colBtnBgOver;
 	style->colBgDown = colBtnBgDown;
-	addButton(layout, style, "New", std::bind(CommonCallback::switchTo, StateType::GAME));
-	addButton(layout, style, "Load", std::bind(CommonCallback::switchTo, StateType::LOAD_MENU));
+	addButton(layout, style, "New", std::bind(CommonCallback::setState, StateType::GAME));
+	addButton(layout, style, "Load", std::bind(CommonCallback::pushState, StateType::LOAD_MENU));
 	addButton(layout, style, "Quit", CommonCallback::quit);
 	wArea.setPosition(IntPair{0, 0});
 	wArea.setSize(IntPair{Constants::windowWidth, Constants::windowHeight});

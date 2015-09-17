@@ -23,8 +23,8 @@ MainGame::MainGame(std::shared_ptr<StateContext> sc) : GameState(StateType::GAME
 	playerDirKeys[2] = SDLK_s;
 	playerDirKeys[3] = SDLK_a;
 
-	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popState);
-	getCallbacks()->setKey(SDLK_p, std::bind(CommonCallback::pushState, _1, StateType::GAME_MENU));
+	getCallbacks()->setKey(SDLK_ESCAPE, CommonCallback::popStateK);
+	getCallbacks()->setKey(SDLK_p, std::bind(CommonCallback::pushStateK, _1, StateType::GAME_MENU));
 	getCallbacks()->setKey(playerDirKeys[0], std::bind(&self_type::playerDirCallback, this, _1, PLAYER_DIR_N));
 	getCallbacks()->setKey(playerDirKeys[1], std::bind(&self_type::playerDirCallback, this, _1, PLAYER_DIR_E));
 	getCallbacks()->setKey(playerDirKeys[2], std::bind(&self_type::playerDirCallback, this, _1, PLAYER_DIR_S));
