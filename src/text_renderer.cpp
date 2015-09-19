@@ -55,6 +55,15 @@ SDL_Surface* TextRenderer::render(const char* cstr) {
 }
 
 
+SDL_Surface* TextRenderer::renderWrap(const std::string& str, const int width) {
+	assert(width > 0);
+	SDL_Surface* surf = TTF_RenderText_Blended_Wrapped(fr.font, str.c_str(), col, static_cast<Uint32>(width));
+	if (surf == nullptr)
+		Logger::instance().exit(SDLError{"unable to render text", SDLFunc::TTF_RenderText_});
+	return surf;
+}
+
+
 void TextRenderer::size(const std::string& text, int& width, int& height) {
 	if (TTF_SizeText(fr.font, text.c_str(), &width, &height) != 0)
 		Logger::instance().exit(SDLError{"unable to get text size", SDLFunc::TTF_SizeText});

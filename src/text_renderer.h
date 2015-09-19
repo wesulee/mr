@@ -19,6 +19,7 @@ struct FontMetrics {
 };
 
 
+// Note: temporary implementation of using TTF_RenderText_Blended_Wrapped() to render wrapped text.
 class TextRenderer {
 	TextRenderer(const TextRenderer&) = delete;
 	void operator=(const TextRenderer&) = delete;
@@ -31,6 +32,7 @@ public:
 	void setShadedBgColor(const Color&);
 	SDL_Surface* render(const std::string&);
 	SDL_Surface* render(const char*);
+	SDL_Surface* renderWrap(const std::string&, const int);
 	void size(const std::string&, int&, int&);
 	const FontMetrics& getMetrics(void) const;
 	void freeFont(void);
