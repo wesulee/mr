@@ -9,6 +9,7 @@
 #include "widget_group.h"
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <unordered_map>
 #include <utility>
@@ -101,12 +102,14 @@ class WidgetLayout : public Widget {
 	typedef WidgetLayout self_type;
 public:
 	// when provided to setSpacing()
-	WidgetLayout() = default;
+	WidgetLayout();
 	virtual ~WidgetLayout() = default;
 	virtual void add(Widget*) = 0;
 	virtual void setMargins(const int, const int, const int, const int);
 	virtual void setWidgetAlignment(const WidgetAlignmentHoriz, const WidgetAlignmentVert);
 	virtual void setSpacing(const int);		// see Constants::WSpacingExpand
+	virtual std::size_t size(void) const = 0;
+	virtual const Widget* get(const std::size_t) const = 0;
 	// Widget methods
 	void event(WidgetEvent&) override;
 protected:
@@ -144,6 +147,8 @@ public:
 	void setMargins(const int, const int, const int, const int) override;
 	void setWidgetAlignment(const WidgetAlignmentHoriz, const WidgetAlignmentVert) override;
 	void setSpacing(const int) override;
+	std::size_t size(void) const override;
+	const Widget* get(const std::size_t) const override;
 	// Widget implementation
 	void draw(Canvas&) override;
 	IntPair getPrefSize(void) const override;
@@ -379,7 +384,7 @@ void AbstractLayout<T>::add(Widget* w) {
 	if (spacing == Constants::WSpacingExpand)
 		T::getPRef(resSz) += static_cast<int>(widgets.size() * 10);
 	else
-		T::getPRef(resSz) += static_cast<int>(widgets.size() - 1) * spacing;
+		T::getPRef(resSz) += (static_cast<int>(widgets.size() - 1) * spacing);
 	// do resize
 	if (_getParent() == nullptr) {
 		if (prefExpandPCount > 0) {
@@ -432,6 +437,18 @@ void AbstractLayout<T>::setSpacing(const int n) {
 
 
 template<class T>
+std::size_t AbstractLayout<T>::size() const {
+	return widgets.size();
+}
+
+
+template<class T>
+const Widget* AbstractLayout<T>::get(const std::size_t i) const {
+	return widgets[i];
+}
+
+
+template<class T>
 void AbstractLayout<T>::draw(Canvas& can) {
 #if defined(DEBUG_WL_BOUNDS) && DEBUG_WL_BOUNDS
 	LayoutHelper::fillBounds(can, bounds);
@@ -461,7 +478,7 @@ IntPair AbstractLayout<T>::getPrefSize() const {
 	else {
 		T::getPRef(ret) += contentSize;
 		if (!widgets.empty())
-			T::getPRef(ret) += spacing * static_cast<int>(widgets.size() - 1);
+			T::getPRef(ret) += (spacing * static_cast<int>(widgets.size() - 1));
 	}
 	return ret;
 }
@@ -480,7 +497,7 @@ template<class T>
 void AbstractLayout<T>::_requestResize(Widget* w, const IntPair&) {
 	assert(LayoutHelper::checkExists(widgets, w));
 	//! TODO not implemented
-	// This does not need to implemented if widgets are created in the correct order
+	// This does not need to be implemented if widgets are created in the correct order
 	//   and no dynamic resizing is needed during a child's lifetime.
 	(void)w;
 	assert(false);
@@ -555,7 +572,7 @@ void AbstractLayout<T>::addExpand(Widget* w) {
 		if (spacing == Constants::WSpacingExpand)
 			T::getPRef(resSz) += static_cast<int>(widgets.size() * 10);
 		else
-			T::getPRef(resSz) += static_cast<int>(widgets.size() - 1) * spacing;
+			T::getPRef(resSz) += (static_cast<int>(widgets.size() - 1) * spacing);
 	}
 	if (sizePolicy != WidgetSizePolicy::FIXED)
 		_doResize(resSz);
@@ -580,8 +597,9 @@ void AbstractLayout<T>::updateLayout() {
 	int expandSz = -1;	// primary size of all widgets with expanded primary (default value)
 	if (prefExpandPCount > 0) {
 		// equally share available space
-		expandSz = (T::getSzP(contentBounds) - contentSizeExc - spacingSz) / prefExpandPCount;
+		expandSz = ((T::getSzP(contentBounds) - contentSizeExc - spacingSz) / prefExpandPCount);
 		assert(expandSz > 0);
+		expandSz = std::max(expandSz, 10);	// 10 is arbitrary, but give some space to the widgets
 	}
 	// determine starting primary position of widget
 	if (T::vert()) {	// vertical layout
@@ -593,7 +611,7 @@ void AbstractLayout<T>::updateLayout() {
 			if (prefExpandPCount > 0)
 				T::getPRef(position) = 0;
 			else
-				T::getPRef(position) = (T::getSzP(contentBounds) - contentSize - spacingSz) / 2;
+				T::getPRef(position) = ((T::getSzP(contentBounds) - contentSize - spacingSz) / 2);
 			break;
 		case WidgetAlignmentVert::BOTTOM:
 			if (prefExpandPCount > 0)
@@ -612,7 +630,7 @@ void AbstractLayout<T>::updateLayout() {
 			if (prefExpandPCount > 0)
 				T::getPRef(position) = 0;
 			else
-				T::getPRef(position) = (T::getSzP(contentBounds) - contentSize - spacingSz) / 2;
+				T::getPRef(position) = ((T::getSzP(contentBounds) - contentSize - spacingSz) / 2);
 			break;
 		case WidgetAlignmentHoriz::RIGHT:
 			if (prefExpandPCount > 0)

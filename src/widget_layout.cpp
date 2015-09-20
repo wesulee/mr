@@ -55,6 +55,11 @@ void drawBounds(Canvas& can, const SDL_Rect& bounds) {
 }	// namespace LayoutHelper
 
 
+WidgetLayout::WidgetLayout() {
+	updateContentBounds();
+}
+
+
 void WidgetLayout::setMargins(const int t, const int b, const int l, const int r) {
 	assert((t >= 0) && (b >= 0) && (l >= 0) && (r >= 0));
 	marginT = t;
@@ -113,6 +118,7 @@ void WidgetLayout::updateContentBounds() {
 		contentBounds.w = 0;
 	}
 	else {
+		contentBounds.x = marginL;
 		contentBounds.w = bounds.w - marginH;
 	}
 	if (marginV >= bounds.h) {
@@ -120,6 +126,7 @@ void WidgetLayout::updateContentBounds() {
 		contentBounds.h = 0;
 	}
 	else {
+		contentBounds.y = marginT;
 		contentBounds.h = bounds.h - marginV;
 	}
 }
