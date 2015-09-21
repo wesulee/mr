@@ -12,17 +12,16 @@
 #include <cassert>
 
 
-DialogState::DialogState(std::shared_ptr<StateContext> sc) : GameState(StateType::DIALOG, sc), dialog(new Dialog) {
+DialogState::DialogState(std::shared_ptr<StateContext> sc) : GameState(StateType::DIALOG, sc) {
 	getCallbacks()->setDefaultKey(DefaultCallback::key);
 	getCallbacks()->setMouse(DefaultCallback::mouse);
 	getCallbacks()->setEvent(DefaultCallback::event);
 
 	if (!GameData::instance().wData.dialogData) {
 		Logger::instance().exit(RuntimeError{"DialogState ctor", "null data"});
-		delete dialog;
 		return;
 	}
-	dialog->setData(GameData::instance().wData.dialogData);
+	dialog = new Dialog{GameData::instance().wData.dialogData};
 	VerticalLayout* layout = new VerticalLayout;
 	layout->setMargins(0, 0, 0, 0);
 	layout->setWidgetAlignment(WidgetAlignmentHoriz::CENTER, WidgetAlignmentVert::CENTER);
@@ -34,6 +33,7 @@ DialogState::DialogState(std::shared_ptr<StateContext> sc) : GameState(StateType
 
 
 DialogState::~DialogState() {
+	// do not delete dialog
 }
 
 
