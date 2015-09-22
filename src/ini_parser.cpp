@@ -5,7 +5,6 @@
 #include <cassert>
 #include <cctype>	// isalpha
 #include <fstream>
-#include <stdexcept>
 #define BOOST_FILESYSTEM_NO_DEPRECATED
 
 
@@ -34,7 +33,7 @@ IniParser::ValueMap IniParser::readFile(const std::string& filePath) {
 	catch (Exception const& e) {
 		Logger::instance().exit(e);
 	}
-	throw std::runtime_error("IniParser::readFile");
+	return {};	// remove warning
 }
 
 
@@ -44,12 +43,12 @@ IniParser::ValueMap IniParser::read(const std::string& filePath) {
 	info.error.setPath(filePath);
 	info.error.setType(ParserError::DataType::INI);
 	info.str.resize(1024);	// unlikely that any line would be longer than this...
-	info.values = &result;
+	info.map = &result;
 	if (!boost::filesystem::exists(filePath))
-		Logger::instance().exit(FileError{filePath, FileError::Err::MISSING});
+		throw FileError{filePath, FileError::Err::MISSING};
 	std::ifstream f{filePath};
 	if (!f.is_open())
-		Logger::instance().exit(FileError{filePath, FileError::Err::NOT_OPEN});
+		throw FileError{filePath, FileError::Err::NOT_OPEN};
 	info.f = &f;
 	IniParser::doRead(info);
 	return result;
@@ -111,7 +110,7 @@ void IniParser::readPair(IniRead& info) {
 		throw info.error;
 	}
 	info.tmp.assign(info.str, 0, setIndex);
-	auto insert = info.values->emplace(info.tmp, std::string{});
+	auto insert = info.map->emplace(info.tmp, std::string{});
 	if (!insert.second && !IniSettings::DUPLICATE_NAME) {
 		// duplicate name
 		info.error.setWhat("duplicate name " + info.tmp);

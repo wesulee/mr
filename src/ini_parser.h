@@ -36,18 +36,16 @@ class IniParser {
 public:
 	typedef std::unordered_map<std::string, std::string> ValueMap;
 private:
-	enum class DataType {END, NAME, EQUALS, VALUE, COMMENT, IGNORE};
 	struct IniRead {
 		ParserError error;
 		std::string str;
 		std::string tmp;
 		std::istream* f;
-		ValueMap* values;
-		char c;
+		ValueMap* map;
 	};
 public:
-	static ValueMap readFile(const std::string&);
-	static ValueMap read(const std::string&);
+	static ValueMap readFile(const std::string&);	// exits on error
+	static ValueMap read(const std::string&);		// throws on error
 private:
 	static void doRead(IniRead&);
 	static void readLine(IniRead&);
