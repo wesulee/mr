@@ -1,37 +1,16 @@
 #include "json_reader.h"
-#include "data_validation.h"
+#include "constants.h"
 #include "exception.h"
 #include "game_data.h"
 #include "json_data.h"
 #include "logger.h"
 #include "room_inc.h"
 #include "sdl_header.h"
-#include <boost/foreach.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/error/en.h>
 #include <cassert>
-#include <vector>
-#ifndef NDEBUG
-#include "constants.h"
-#endif
-
-
-#ifndef NDEBUG
-#define VALID_ARRAY(iter1,iter2) validArray(iter1, iter2)
-#else
-#define VALID_ARRAY(iter1,iter2) true
-#endif // NDEBUG
-
-
-template<class T>	// T iterator
-static bool validArray(T begin, const T end) {
-	while (begin != end) {
-		if (!begin->first.empty())
-			return false;
-		++begin;
-	}
-	return true;
-}
+#include <cstdio>
 
 
 namespace JSONHelper {
@@ -46,61 +25,60 @@ static std::string getRelPathToDataDir(const std::string& filePath) {
 }
 
 
-void read(const std::string& filePath, boost::property_tree::ptree& pt) {
-	using namespace boost::property_tree;
-	try {
+static void read(const std::string& filePath, rapidjson::Document& doc) {
 #if defined(DEBUG_JSON_READ) && DEBUG_JSON_READ
-		DEBUG_BEGIN << DEBUG_JSON_PREPEND << "READ " << getRelPathToDataDir(filePath) << std::endl;
+	DEBUG_BEGIN << DEBUG_JSON_PREPEND << "READ " << getRelPathToDataDir(filePath) << std::endl;
 #endif
-		read_json(filePath, pt);
+#if defined(_WIN32)
+	FILE* f = std::fopen(filePath.c_str() , "rb");
+#else
+	FILE* f = std::fopen(filePath.c_str() , "r");
+#endif // _WIN32
+	if (f == nullptr) {
+		std::perror("fopen");
+		throw FileError{filePath, FileError::Err::NOT_OPEN};
 	}
-	catch (ptree_bad_path const& e) {
-		throw FileError{filePath, FileError::Err::MISSING, e.what()};
-	}
-	catch (json_parser::json_parser_error const& e) {
+	char buffer[Constants::JSONBufferSz];
+	rapidjson::FileReadStream is{f, buffer, sizeof(buffer)};
+	doc.ParseStream(is);
+	std::fclose(f);
+	if (doc.HasParseError()) {
 		ParserError error{ParserError::DataType::JSON};
 		error.setPath(filePath);
-		error.setWhat(e.message());
-		error.setLine(e.line());
+		error.setOffset(doc.GetErrorOffset());
+		error.setWhat("error parsing json", rapidjson::GetParseError_En(doc.GetParseError()));
 		throw error;
 	}
 }
 
 
-void checkExists(const boost::property_tree::ptree& pt, const std::vector<std::string>& check, BadData& error) {
-	for (const auto& str : check) {
-		if (pt.count(str) == 0) {
-			error.setDetails("missing \"" + str + '\"');
-			throw error;
-		}
-	}
+template<class T>
+static int getIntAndInc(T& it) {
+	const int n = it->GetInt();
+	++it;
+	return n;
 }
 
 
-void procRoomConnecting(std::vector<std::pair<int, int>>& pairs,
-	const boost::property_tree::ptree& pt, BadData& error) {
-	using namespace boost::property_tree;
-	if (pt.empty())
-		return;
-	if (pt.size() % 2 != 0) {
-		error.setDetails("conn size not even");
-		throw error;
-	}
-	pairs.reserve(pt.size() / 2);
-	std::pair<int, int> pair;
-	ptree::const_iterator it = pt.begin();
-	if (!VALID_ARRAY(it, pt.end())) {
-		error.setDetails("conn invalid array");
-		throw error;
-	}
-	while (it != pt.end()) {
-		//! TODO check valid int
-		pair.first = std::stoi(it->second.data());
-		++it;
-		pair.second = std::stoi(it->second.data());
-		++it;
-		assert(pair.second > pair.first);
-		pairs.push_back(pair);
+template<class T>
+static void readRect(SDL_Rect& r, T& it) {
+	r.x = getIntAndInc(it);
+	r.y = getIntAndInc(it);
+	r.w = getIntAndInc(it);
+	r.h = getIntAndInc(it);
+}
+
+
+template<class T>	// T is array
+void procRoomConnecting(const T& array, std::vector<std::pair<int, int>>& vec) {
+	namespace rj = rapidjson;
+	vec.reserve(array.Size() / 2);
+	// process one pair at a time
+	std::pair<int, int> p;
+	for (rj::Value::ConstValueIterator it = array.Begin(); it != array.End();) {
+		p.first = getIntAndInc(it);
+		p.second = getIntAndInc(it);
+		vec.push_back(p);
 	}
 }
 
@@ -144,368 +122,108 @@ std::shared_ptr<CreatureData> JSONReader::loadCreature(const std::string& filePa
 
 
 std::shared_ptr<SpriteSheetData> JSONReader::runLoadSpriteSheet(const std::string& filePath) {
-	using namespace boost::property_tree;
 	using namespace JSONHelper;
-	BadData error{"JSONReader error processing spritesheet"};
-	error.setFilePath(filePath);
-
+	namespace rj = rapidjson;
+	rj::Document doc;
 	std::shared_ptr<SpriteSheetData> data = std::make_shared<SpriteSheetData>();
-	ptree pt;
-	ptree::const_iterator it;
-	std::string tmpStr;
-	int tmpInt, i, j;
-	read(filePath, pt);
+	read(filePath, doc);
 #if defined(DEBUG_JSON_PROC) && DEBUG_JSON_PROC
 	DEBUG_BEGIN << DEBUG_JSON_PREPEND << "PROC spritesheet " << getRelPathToDataDir(filePath) << std::endl;
 #endif
-
-	checkExists(pt, {"img", "sprites"}, error);
-	data->image = pt.get<std::string>("img");
-
-	// process sprites
-	i = 0;
-	SDL_Rect tmpRect;
-	BOOST_FOREACH(ptree::value_type& v, pt.get_child("sprites")) {
-		if (!v.first.empty()) {
-			error.setDetails("sprites: unexpected object at index " + std::to_string(i));
-			throw error;
+	data->image = doc["img"].GetString();
+	{	// process sprites
+		SDL_Rect tmpRect;
+		std::string tmpStr;
+		const rj::Value& sprites = doc["sprites"];
+		for (rj::Value::ConstValueIterator it = sprites.Begin(); it != sprites.End(); ++it) {
+			rj::Value::ConstValueIterator it2 = it->Begin();
+			tmpStr = it2->GetString();
+			++it2;
+			readRect(tmpRect, it2);
+			data->sprites.emplace(tmpStr, tmpRect);
 		}
-		if (v.second.size() != 5) {
-			error.setDetails("sprites: invalid size at index " + std::to_string(i));
-			throw error;
-		}
-
-		it = v.second.begin();
-		tmpStr = it->second.data();
-
-		for (++it, j = 0; it != v.second.end(); ++it, ++j) {
-			if (!it->first.empty()) {
-				error.setDetails("sprites: unexpected object at index " + std::to_string(i));
-				throw error;
-			}
-			if (!IS_UINT(it->second.data())) {
-				error.setDetails("sprites: invalid integer at index " + std::to_string(i));
-				throw error;
-			}
-			tmpInt = std::stoi(it->second.data());
-			if (!EQUIVALENT(it->second.data(), tmpInt)) {
-				error.setDetails("sprites: invalid integer at index " + std::to_string(i));
-				throw error;
-			}
-			switch (j) {
-			case 0:
-				tmpRect.x = tmpInt;
-				break;
-			case 1:
-				tmpRect.y = tmpInt;
-				break;
-			case 2:
-				tmpRect.w = tmpInt;
-				break;
-			case 3:
-				tmpRect.h = tmpInt;
-				break;
-			default:
-				break;
-			}
-		}
-#ifndef NDEBUG
-		if (data->sprites.find(tmpStr) != data->sprites.end()) {
-			error.setDetails("sprite " + tmpStr + " is not unique");
-			throw error;
-		}
-#endif // NDEBUG
-		data->sprites.emplace(tmpStr, tmpRect);
-		++i;
 	}
-
 	return data;
 }
 
 
 std::shared_ptr<RoomData> JSONReader::runLoadRoom(const std::string& filePath) {
-	using namespace boost::property_tree;
 	using namespace JSONHelper;
-	BadData error{"JSONReader error processing room"};
-	error.setFilePath(filePath);
-
+	namespace rj = rapidjson;
+	rj::Document doc;
 	std::shared_ptr<RoomData> data = std::make_shared<RoomData>();
-	ptree pt;
-	std::string tmpStr;
-	RoomSpriteData tmpRS;
-	RoomCreatureData tmpCD;
-	SDL_Rect tmpRect;
-	int tmpInt;
-
-	read(filePath, pt);
+	read(filePath, doc);
 #if defined(DEBUG_JSON_PROC) && DEBUG_JSON_PROC
 	DEBUG_BEGIN << DEBUG_JSON_PREPEND << "PROC room " << getRelPathToDataDir(filePath) << std::endl;
 #endif
-
-	checkExists(
-		pt,
-		{"background", "block", "creatures", "conn", "items"},
-		error
-	);
-
-	// process background
-	int i = 0;
-	BOOST_FOREACH(ptree::value_type& v, pt.get_child("background")) {
-		if (!v.first.empty()) {
-			error.setDetails("\"background\" expecting array");
-			throw error;
+	{	// process background
+		RoomSpriteData tmpRS;
+		const rj::Value& background = doc["background"];
+		for (rj::Value::ConstValueIterator it = background.Begin(); it != background.End(); ++it) {
+			tmpRS.name = (*it)["name"].GetString();
+			tmpRS.x = (*it)["x"].GetInt();
+			tmpRS.y = (*it)["y"].GetInt();
+			data->bg.push_back(tmpRS);
 		}
-		if (v.second.count("name") != 1) {
-			error.setDetails("\"background\" missing name at index " + std::to_string(i));
-			throw error;
-		}
-		if (v.second.count("x") != 1) {
-			error.setDetails("\"background\" missing x at index " + std::to_string(i));
-			throw error;
-		}
-		if (v.second.count("y") != 1) {
-			error.setDetails("\"background\" missing y at index " + std::to_string(i));
-			throw error;
-		}
-		tmpRS.name = v.second.get<std::string>("name");
-		tmpStr = v.second.get<std::string>("x");
-		if (!IS_UINT(tmpStr)) {
-			error.setDetails("\"background\" expecting integer x at index " + std::to_string(i));
-			throw error;
-		}
-		tmpRS.x = std::stoi(tmpStr);
-		if (!EQUIVALENT(tmpStr, tmpRS.x)) {
-			error.setDetails("\"background\" invalid x at index " + std::to_string(i));
-			throw error;
-		}
-		tmpStr = v.second.get<std::string>("y");
-		if (!IS_UINT(tmpStr)) {
-			error.setDetails("\"background\" expecting integer y at index " + std::to_string(i));
-			throw error;
-		}
-		tmpRS.y = std::stoi(tmpStr);
-		if (!EQUIVALENT(tmpStr, tmpRS.y)) {
-			error.setDetails("\"background\" invalid y at index " + std::to_string(i));
-			throw error;
-		}
-		data->bg.push_back(tmpRS);
-
-		++i;
 	}
-	// process block
-	i = 0;
-	int i2;
-	BOOST_FOREACH(ptree::value_type& v, pt.get_child("block")) {
-		if (!v.first.empty()) {
-			error.setDetails("\"block\" expecting array at index " + std::to_string(i));
-			throw error;
+	{	// process block
+		SDL_Rect tmpRect;
+		const rj::Value& block = doc["block"];
+		for (rj::Value::ConstValueIterator it = block.Begin(); it != block.End(); ++it) {
+			rj::Value::ConstValueIterator it2 = it->Begin();
+			readRect(tmpRect, it2);
+			data->block.push_back(tmpRect);
 		}
-		if (v.second.size() != 4) {
-			error.setDetails("\"block\" invalid array size at index " + std::to_string(i));
-			throw error;
-		}
-		i2 = 0;
-		BOOST_FOREACH(ptree::value_type& v2, v.second) {
-			if (!v2.first.empty()) {
-				// iterating over integers in array, so first should always be empty
-				error.setDetails(
-					"\"block\" unexpected object at index " + std::to_string(i) + ", " + std::to_string(i2)
-				);
-				throw error;
-			}
-
-			tmpStr = v2.second.data();
-			switch (i2) {
-			case 0:		// x
-				if (!IS_INT(tmpStr)) {
-					error.setDetails(
-						"\"block\" expecting integer at index " + std::to_string(i) + ", " + std::to_string(i2)
-					);
-					throw error;
-				}
-				tmpInt = std::stoi(tmpStr);
-				if (!EQUIVALENT(tmpStr, tmpInt)) {
-					error.setDetails(
-						"\"block\" invalid integer at index " + std::to_string(i) + ", " + std::to_string(i2)
-					);
-					throw error;
-				}
-				tmpRect.x = tmpInt;
-				break;
-			case 1:		// y
-				if (!IS_INT(tmpStr)) {
-					error.setDetails(
-						"\"block\" expecting integer at index " + std::to_string(i) + ", " + std::to_string(i2)
-					);
-					throw error;
-				}
-				tmpInt = std::stoi(tmpStr);
-				if (!EQUIVALENT(tmpStr, tmpInt)) {
-					error.setDetails(
-						"\"block\" invalid integer at index " + std::to_string(i) + ", " + std::to_string(i2)
-					);
-					throw error;
-				}
-				tmpRect.y = tmpInt;
-				break;
-			case 2:		// w
-				if (!IS_UINT(tmpStr)) {
-					error.setDetails(
-						"\"block\" expecting unsigned integer at index " + std::to_string(i) + ", " + std::to_string(i2)
-					);
-					throw error;
-				}
-				tmpInt = std::stoi(tmpStr);
-				if (!EQUIVALENT(tmpStr, tmpInt)) {
-					error.setDetails(
-						"\"block\" invalid integer at index " + std::to_string(i) + ", " + std::to_string(i2)
-					);
-					throw error;
-				}
-				tmpRect.w = tmpInt;
-				break;
-			case 3:		// h
-				if (!IS_UINT(tmpStr)) {
-					error.setDetails(
-						"\"block\" expecting unsigned integer at index " + std::to_string(i) + ", " + std::to_string(i2)
-					);
-					throw error;
-				}
-				tmpInt = std::stoi(tmpStr);
-				if (!EQUIVALENT(tmpStr, tmpInt)) {
-					error.setDetails(
-						"\"block\" invalid integer at index " + std::to_string(i) + ", " + std::to_string(i2)
-					);
-					throw error;
-				}
-				tmpRect.h = tmpInt;
-				data->block.push_back(tmpRect);
-				break;
-			default:
-				// shouldn't happen...
-				break;
-			}
-			++i2;
-		}
-		++i;
 	}
-	// process creatures
-	i = 0;
-	BOOST_FOREACH(ptree::value_type& v, pt.get_child("creatures")) {
-		if (!v.first.empty()) {
-			error.setDetails("\"creatures\" expecting array");
-			throw error;
+	{	// process creatures
+		RoomCreatureData tmpCD;
+		const rj::Value& creatures = doc["creatures"];
+		for (rj::Value::ConstValueIterator it = creatures.Begin(); it != creatures.End(); ++it) {
+			tmpCD.name = (*it)["name"].GetString();
+			tmpCD.x = (*it)["x"].GetInt();
+			tmpCD.y = (*it)["y"].GetInt();
+			data->creatures.push_back(tmpCD);
 		}
-		if (v.second.size() != 3) {
-			error.setDetails("\"creatures\" invalid object size at index " + std::to_string(i));
-			throw error;
-		}
-		if (v.second.count("name") == 0) {
-			error.setDetails("\"creatures\" missing name at index " + std::to_string(i));
-			throw error;
-		}
-		if (v.second.count("x") == 0) {
-			error.setDetails("\"creatures\" missing x at index " + std::to_string(i));
-			throw error;
-		}
-		if (v.second.count("y") == 0) {
-			error.setDetails("\"creatures\" missing y at index " + std::to_string(i));
-			throw error;
-		}
-		tmpCD.name = v.second.get<std::string>("name");
-		tmpStr = v.second.get<std::string>("x");
-		if (!IS_UINT(tmpStr)) {
-			error.setDetails("\"creatures\" expecting integer x at index " + std::to_string(i));
-			throw error;
-		}
-		tmpInt = std::stoi(tmpStr);
-		if (!EQUIVALENT(tmpStr, tmpInt)) {
-			error.setDetails("\"creatures\" invalid x at index " + std::to_string(i));
-			throw error;
-		}
-		tmpCD.x = tmpInt;
-		tmpStr = v.second.get<std::string>("y");
-		if (!IS_UINT(tmpStr)) {
-			error.setDetails("\"creatures\" expecting integer y at index " + std::to_string(i));
-			throw error;
-		}
-		tmpInt = std::stoi(tmpStr);
-		if (!EQUIVALENT(tmpStr, tmpInt)) {
-			error.setDetails("\"creatures\" invalid y at index " + std::to_string(i));
-			throw error;
-		}
-		tmpCD.y = tmpInt;
-		data->creatures.push_back(tmpCD);
-
-		++i;
 	}
-	// process conn
-	ptree& ptConn = pt.get_child("conn");
-	checkExists(ptConn, {"n", "e", "s", "w"}, error);
-	procRoomConnecting(
-		data->connecting[SideToIndex(Side::NORTH)],
-		ptConn.get_child("n"),
-		error
-	);
-	procRoomConnecting(
-		data->connecting[SideToIndex(Side::EAST)],
-		ptConn.get_child("e"),
-		error
-	);
-	procRoomConnecting(
-		data->connecting[SideToIndex(Side::SOUTH)],
-		ptConn.get_child("s"),
-		error
-	);
-	procRoomConnecting(
-		data->connecting[SideToIndex(Side::WEST)],
-		ptConn.get_child("w"),
-		error
-	);
-
+	{	// process conn
+		const rj::Value& conn = doc["conn"];
+		procRoomConnecting(conn["n"], data->connecting[SideToIndex(Side::NORTH)]);
+		procRoomConnecting(conn["e"], data->connecting[SideToIndex(Side::EAST)]);
+		procRoomConnecting(conn["s"], data->connecting[SideToIndex(Side::SOUTH)]);
+		procRoomConnecting(conn["w"], data->connecting[SideToIndex(Side::WEST)]);
+	}
 	return data;
 }
 
 
 std::shared_ptr<CreatureData> JSONReader::runLoadCreature(const std::string& filePath) {
-	using namespace boost::property_tree;
 	using namespace JSONHelper;
-	BadData error{"JSONReader error processing creature"};
-	error.setFilePath(filePath);
+	namespace rj = rapidjson;
+	rj::Document doc;
 	std::shared_ptr<CreatureData> data = std::make_shared<CreatureData>();
-	ptree pt;
-	std::string tmpStr;
-	int i;
-
-	read(filePath, pt);
+	read(filePath, doc);
 #if defined(DEBUG_JSON_PROC) && DEBUG_JSON_PROC
 	DEBUG_BEGIN << DEBUG_JSON_PREPEND << "PROC creature " << getRelPathToDataDir(filePath) << std::endl;
 #endif
-
-	checkExists(pt, {"attr"}, error);
-	// process attributes
-	BOOST_FOREACH(ptree::value_type& v, pt.get_child("attr")) {
-		data->attributes[v.first] = v.second.data();
+	{	// process attributes
+		const rj::Value& attributes = doc["attr"];
+		for (rj::Value::ConstMemberIterator it = attributes.MemberBegin(); it != attributes.MemberEnd(); ++it) {
+			data->attributes[it->name.GetString()] = std::to_string(it->value.GetInt());
+		}
 	}
+
 	// process animations
-	if (pt.count("animations") != 0) {
-		i = 0;
-		BOOST_FOREACH(ptree::value_type& v, pt.get_child("animations")) {
+	if (doc.HasMember("animations")) {
+		const rj::Value& animations = doc["animations"];
+		for (rj::Value::ConstValueIterator it = animations.Begin(); it != animations.End(); ++it) {
 			data->animations.emplace_front();
 			auto& obj = data->animations.front();
-			BOOST_FOREACH(ptree::value_type& v2, v.second) {
-				if (v2.first.empty()) {
-					error.setDetails("\"animations\" invalid name at index " + std::to_string(i));
-					throw error;
-				}
-				obj[v2.first] = v2.second.data();
+			for (rj::Value::ConstMemberIterator it2 = it->MemberBegin(); it2 != it->MemberEnd(); ++it2) {
+				if (it2->value.IsInt())
+					obj[it2->name.GetString()] = std::to_string(it2->value.GetInt());
+				else
+					obj[it2->name.GetString()] = it2->value.GetString();
 			}
-			// make sure every animation includes name
-			if (obj.count("name") == 0) {
-				error.setDetails("\"animations\" object missing name at index " + std::to_string(i));
-				throw error;
-			}
-			++i;
 		}
 	}
 	//! TODO process the rest

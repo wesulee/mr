@@ -27,6 +27,8 @@ namespace Constants {
 	constexpr int CHealthHeight = 5;
 	constexpr int CHealthPadX = 1;
 	constexpr int CHealthPadY = 1;
+	// JSONReader
+	constexpr std::size_t JSONBufferSz = (8 * 1024);
 	// Map
 	constexpr int MapCountX = 12;
 	constexpr int MapCountY = 6;
@@ -61,6 +63,14 @@ namespace Constants {
 	constexpr uint32_t WClickDur = 100;
 	constexpr uint32_t WTextCursorBlinkRate = 500;	// duration (ms) of a tick
 }
+
+
+// If Windows, make sure _WIN32 is defined
+#if defined(WIN32) || defined(__WIN32)
+	#ifndef _WIN32
+		#define _WIN32
+	#endif
+#endif
 
 
 #ifndef NDEBUG
