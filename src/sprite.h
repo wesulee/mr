@@ -4,24 +4,27 @@
 #include "sdl_helper.h"
 
 
-// Represents a (relative position) static sprite from the loaded SpriteSheet.
+class Canvas;
+
+
+// Represents a sprite from a SpriteSheet.
+// Invalid once SpriteSheet is destroyed.
 class Sprite : public Drawable {
 public:
 	Sprite() = default;
-	Sprite(SDL_Texture*, const SDL_Rect&);
+	Sprite(SDL_Surface*, SDL_Texture*, const SDL_Rect&);
 	Sprite(const Sprite&);
-	~Sprite();
-
-	int width(void) const;
-	int height(void) const;
-
+	~Sprite() {}
 	Sprite& operator=(const Sprite&);
+	void draw(Canvas&, const int, const int);
+	bool blit(SDL_Surface*, SDL_Rect*);
 	// Drawable implementation
-	SDL_Texture* getTexture();
-	SDL_Rect* getTextureBounds();
-	int getDrawWidth() const;
-	int getDrawHeight() const;
+	SDL_Texture* getTexture(void);
+	SDL_Rect* getTextureBounds(void);
+	int getDrawWidth(void) const;
+	int getDrawHeight(void) const;
 private:
-	SDL_Texture* tex = nullptr;
 	SDL_Rect clip = {0, 0, 0, 0};
+	SDL_Surface* surf = nullptr;
+	SDL_Texture* tex = nullptr;
 };

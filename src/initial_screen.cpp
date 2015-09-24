@@ -22,7 +22,7 @@ namespace InitialScreenSettings {
 	constexpr int barWidth = 150;
 	constexpr int barHeight = 10;
 	constexpr int barOutline = 1;
-	constexpr int jobs = 5;
+	constexpr int jobs = 6;
 	constexpr Color colBg = COLOR_BLACK;
 	constexpr Color colBar = COLOR_WHITE;
 }
@@ -107,17 +107,19 @@ void InitialScreen::update() {
 		checkFolderExists(GameData::instance().dataPath);
 		break;
 	case 1:
-		// also loads default spritesheet
 		GameData::instance().resources->init();
 		break;
 	case 2:
+		GameData::instance().resources->getSpriteSheet("default", true, true);
+		break;
+	case 3:
 		GameData::instance().resources->getDefaultTR()->setFont(Font{Font::DEFAULT, Font::DEFAULT_SIZE}, true);
 		GameData::instance().resources->getDefaultTR()->setRenderType(TextRenderType::BLENDED);
 		break;
-	case 3:
+	case 4:
 		GameData::instance().wData.init(GameData::instance().resources->getDefaultTR());
 		break;
-	case 4:
+	case 5:
 		checkFolder(GameData::instance().savePath, true);
 		break;
 	default:

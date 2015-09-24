@@ -106,12 +106,14 @@ namespace Constants {
 #define DEBUG_JSON_PROC 1
 // ResourceManager
 #define DEBUG_RM_PREPEND "ResMan "
-#define DEBUG_RM_TEX_PREPEND "textureRef "
+#define DEBUG_RM_IMG_PREPEND "imgRef "
+#define DEBUG_RM_SS_PREPEND "sprSheet "
 #define DEBUG_RM_LOAD_FONT        1
 #define DEBUG_RM_UNLOAD_FONT      1
 #define DEBUG_RM_LOAD_ANIMATION   1
 #define DEBUG_RM_UNLOAD_ANIMATION 1
-#define DEBUG_RM_TEX_REF          1
+#define DEBUG_RM_IMG_REF          1
+#define DEBUG_RM_SS_REF           1
 // Room
 #define DEBUG_ROOM_BLOCK       1
 #define DEBUG_ROOM_BLOCK_COLOR COLOR_RED

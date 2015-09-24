@@ -19,13 +19,48 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/serialization/vector.hpp>	// SaveData
-#include <cassert>
+#include <cstdint>	// uintptr_t
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <vector>
 #define BOOST_FILESYSTEM_NO_DEPRECATED
+
+
+namespace ResManHelper {
+
+template<class T, class Iter>
+static void delSpriteSheet(T& map, Iter it) {
+	delete it->second.res;
+	map.erase(it);
+}
+
+
+template<typename T>
+static std::string getHex(const T n) {
+	std::stringstream ss;
+	ss << std::hex << n << std::dec;
+	return ss.str();
+}
+
+
+template<typename T>
+static std::string ptrToStr(const T ptr) {
+	if (ptr == nullptr)
+		return "nullptr";
+	else
+		return ("0x" + getHex(reinterpret_cast<uintptr_t>(ptr)));
+}
+
+
+static std::string rectToStr(const SDL_Rect& r) {
+	std::stringstream ss;
+	ss << '(' << r.x << ", " << r.y << ", " << r.w << ", " << r.h << ')';
+	return ss.str();
+}
+
+} // namespace ResManHelper
 
 
 // returns missing key, empty string if ok
@@ -57,94 +92,102 @@ static std::string toString(const FontResource& fr) {
 
 ResourceManager::~ResourceManager() {
 	defaultTR.freeFont();
-	// don't delete defaultSS
-	SDL::freeNull(defaultSurf);
 	for (auto it = fonts.begin(); it != fonts.end(); ++it)
-		TTF_CloseFont(it->second.reference);
+		TTF_CloseFont(it->second.res);
 	for (auto f : fontsPrivate)
 		TTF_CloseFont(f);
 	for (auto it = animations.begin(); it != animations.end(); ++it)
 		delete it->second;
 	for (auto it = sheets.begin(); it != sheets.end(); ++it)
-		delete it->second.reference;
-	for (auto it = textures.begin(); it != textures.end(); ++it)
-		SDL::free(it->second.reference);
+		delete it->second.res;
+	for (auto it = images.begin(); it != images.end(); ++it) {
+		SDL::freeNull(it->second.res.surf);
+		SDL::freeNull(it->second.res.tex);
+	}
 }
 
 
 void ResourceManager::init() {
-	std::pair<SDL_Surface*, SDL_Texture*> img = loadImage("default");
-	defaultSurf = img.first;
-	defaultSS = loadSpriteSheet("default");
 	// populate animation type mapping
 	animationLookup.emplace("uni", AnimationType::UNIFORM);
 }
 
 
-SDL_Surface* ResourceManager::getDefaultSurface() {
-	return defaultSurf;
+UniformAnimatedSpriteSource* ResourceManager::getUSprSrc(const std::string& name) {
+	auto it = animations.find(name);
+	if (it == animations.end()) {
+		Logger::instance().exit(RuntimeError{
+			"invalid animation reference",
+			"ResourceManager::getUSprSrc invalid reference to " + name
+		});
+	}
+	return dynamic_cast<UniformAnimatedSpriteSource*>(it->second);
 }
 
 
-SpriteSheet* ResourceManager::getSpriteSheet(const std::string& name) {
-	auto it = sheets.find(name);
-	if (it != sheets.end())
-		return it->second.reference;
-	// not found, try to load
-	return loadSpriteSheet(name);
+// Animations always load image as texture
+AnimatedSpriteSource* ResourceManager::loadAnimation(const std::map<std::string, std::string>& args) {
+	assert(args.count("name") != 0);
+	assert(args.count("img") != 0);
+	assert(args.count("type") != 0);
+	auto it = animationLookup.find(args.at("type"));
+	if (it == animationLookup.end()) {
+		Logger::instance().exit(RuntimeError{
+			"invalid animation type",
+			"ResourceManager::loadAnimation unknown type: " + args.at("type")
+		});
+	}
+	const AnimationType t = it->second;
+	const std::string& name = args.at("name");
+	AnimatedSpriteSource* src;
+	switch (t) {
+	case AnimationType::UNIFORM:
+#if defined(DEBUG_RM_LOAD_ANIMATION) && DEBUG_RM_LOAD_ANIMATION
+		DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadAnimation type UNIFORM " << q(name) << std::endl;
+#endif
+		src = loadAnimationUni(args);
+		break;
+	default:
+#if defined(DEBUG_RM_LOAD_ANIMATION) && DEBUG_RM_LOAD_ANIMATION
+		DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadAnimation type UNKNOWN " << q(name) << std::endl;
+#endif
+		assert(false);
+		src = nullptr;
+	}
+	if (src == nullptr) {
+		Logger::instance().exit(RuntimeError{
+			"unable to load animation",
+			"ResourceManager::loadAnimation name: " + name
+		});
+	}
+	animations[name] = src;
+	return src;
+}
+
+
+void ResourceManager::freeAnimation(const std::string& name) {
+	auto it = animations.find(name);
+	if (it == animations.end()) {
+		Logger::instance().exit(RuntimeError{
+			"invalid animation reference",
+			"ResourceManager::freeAnimation cannot find: " + name
+		});
+	}
+#if defined(DEBUG_RM_UNLOAD_ANIMATION) && DEBUG_RM_UNLOAD_ANIMATION
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadAnimation " << q(name) << std::endl;
+#endif
+	// decrement image reference
+	auto itImg = images.find(it->second->getImageName());
+	if (decImageCounter(itImg->second, false, true)) {
+		images.erase(itImg);
+	}
+	delete it->second;
+	animations.erase(it);
 }
 
 
 TextRenderer* ResourceManager::getDefaultTR() {
 	return &defaultTR;
-}
-
-
-std::shared_ptr<RoomData> ResourceManager::getRoomData(const int x, const int y) {
-	std::string filePath = getPath(ResourceType::ROOM, roomToString(x, y));
-	std::shared_ptr<RoomData> rd = JSONReader::loadRoom(filePath);
-	if (!rd)
-		Logger::instance().exit(RuntimeError{"unable to load room", roomToString(x, y)});
-	return rd;
-}
-
-
-std::shared_ptr<CreatureData> ResourceManager::getCreatureData(const std::string& name) {
-	std::string filePath = getPath(ResourceType::CREATURE, name);
-	std::shared_ptr<CreatureData> data = JSONReader::loadCreature(filePath);
-	if (!data)
-		Logger::instance().exit(RuntimeError{"unable to load creature", name});
-	return data;
-}
-
-
-std::shared_ptr<SaveData> ResourceManager::getSaveData(const std::string& fname) {
-	std::string filePath = getPath(ResourceType::SAVE, fname);
-	std::shared_ptr<SaveData> data = std::make_shared<SaveData>();
-	std::ifstream file{filePath};
-	boost::archive::text_iarchive ar{file};
-	ar & (*data);
-	return data;
-}
-
-
-SDL_Surface* ResourceManager::generateSurface(const RoomData& rd) const {
-	SDL_Rect dst;
-	SDL_Rect spriteBounds;
-	SDL_Surface* surf = SDL::newSurface24(Constants::roomWidth, Constants::roomHeight);
-	SDL_FillRect(surf, nullptr, SDL::mapRGB(surf->format, COLOR_BLACK));
-	for (auto it = rd.bg.cbegin(); it != rd.bg.cend(); ++it) {
-		spriteBounds = defaultSS->getBounds(it->name);
-		dst.x = it->x;
-		dst.y = it->y;
-		dst.w = spriteBounds.w;
-		dst.h = spriteBounds.h;
-		if (SDL_BlitSurface(defaultSurf, &spriteBounds, surf, &dst) != 0) {
-			// error drawing sprite, log error and continue
-			SDL::logError("ResourceManager::generateSurface SDL_BlitSurface");
-		}
-	}
-	return surf;
 }
 
 
@@ -158,20 +201,20 @@ FontResource ResourceManager::loadFont(const Font& font, const bool shared) {
 		// check if already loaded
 		auto it = fonts.find(font);
 		if (it != fonts.end())	{	// already loaded
-			++(it->second.counter);
-			fr.font = it->second.reference;
+			++(it->second.count);
+			fr.font = it->second.res;
 #if defined(DEBUG_RM_LOAD_FONT) && DEBUG_RM_LOAD_FONT
-			DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadFont INC ref to " << it->second.counter
+			DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadFont INC ref to " << it->second.count
 			            << " (" << toString(fr) << ')' << std::endl;
 #endif // DEBUG_RM_LOAD_FONT
 		}
 		else {	// hasn't been loaded yet, load now
-			ResourceCounter<TTF_Font> insert;
-			insert.counter = 1;
-			insert.reference = openFont(font);
+			ResourceCounter<TTF_Font*> insert;
+			insert.count = 1;
+			insert.res = openFont(font);
 			// insert into fonts
 			fonts[font] = insert;
-			fr.font = insert.reference;
+			fr.font = insert.res;
 #if defined(DEBUG_RM_LOAD_FONT) && DEBUG_RM_LOAD_FONT
 			DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadFont NEW ref (" << toString(fr) << ')' << std::endl;
 #endif
@@ -210,17 +253,17 @@ void ResourceManager::unloadFont(FontResource& fr) {
 				"ResourceManager::unloadFont invalid resource: " + toString(fr)
 			});
 		}
-		--(it->second.counter);
-		if (it->second.counter == 0) {	// unload
+		--(it->second.count);
+		if (it->second.count == 0) {	// unload
 #if defined(DEBUG_RM_UNLOAD_FONT) && DEBUG_RM_UNLOAD_FONT
 			DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadFont FREE (" << toString(fr) << ')' << std::endl;
 #endif
-			TTF_CloseFont(it->second.reference);
+			TTF_CloseFont(it->second.res);
 			fonts.erase(it);
 		}
 		else {
 #if defined(DEBUG_RM_UNLOAD_FONT) && DEBUG_RM_UNLOAD_FONT
-			DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadFont DEC ref to " << it->second.counter
+			DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadFont DEC ref to " << it->second.count
 			            << " (" << toString(fr) << ')' << std::endl;
 #endif // DEBUG_RM_UNLOAD_FONT
 		}
@@ -247,60 +290,57 @@ void ResourceManager::unloadFont(FontResource& fr) {
 }
 
 
-//! TODO rename
-Sprite ResourceManager::getSprite(const std::string& name) {
-	return defaultSS->get(name);
+// surf=true when surface is needed, tex=true when texture is needed.
+// If it is only used to generate a surface, then only surf should be true.
+SpriteSheet* ResourceManager::getSpriteSheet(const std::string& name, const bool surf, const bool tex) {
+	auto it = sheets.find(name);
+	if (it != sheets.end()) {
+		ImageResource* const ir = getImage(it->second.res->imgName, surf, tex);
+		incSpriteSheetCounter(it->second, surf, tex);	// update sheet counter
+		// surface or texture may have been loaded, so update spritesheet
+		it->second.res->surf = ir->surf;
+		it->second.res->tex = ir->tex;
+		return it->second.res;
+	}
+	else {
+		// not found, load
+		return loadSpriteSheet(name, surf, tex);
+	}
 }
 
 
-UniformAnimatedSpriteSource* ResourceManager::getUSprSrc(const std::string& name) {
-	auto it = animations.find(name);
-	if (it == animations.end()) {
+void ResourceManager::freeSpriteSheet(const std::string& name, const bool surf, const bool tex) {
+	using namespace ResManHelper;
+	auto it = sheets.find(name);
+	if (it == sheets.end()) {
 		Logger::instance().exit(RuntimeError{
-			"invalid animation reference",
-			"ResourceManager::getUSprSrc invalid reference to " + name
+			"invalid spritesheet reference",
+			"ResourceManager::freeSpriteSheet cannot find " + q(name)
 		});
 	}
-	return dynamic_cast<UniformAnimatedSpriteSource*>(it->second);
+	decSpriteSheetCounter(it->second, surf, tex);
+	if (it->second.countSurf == 0) {
+		it->second.res->surf = nullptr;
+		if (it->second.countTex == 0) {
+			delSpriteSheet(sheets, it);
+		}
+	}
+	if (it->second.countTex == 0) {
+		it->second.res->tex = nullptr;
+		if (it->second.countSurf == 0) {
+			delSpriteSheet(sheets, it);
+		}
+	}
 }
 
 
-AnimatedSpriteSource* ResourceManager::loadAnimation(const std::map<std::string, std::string>& args) {
-	assert(args.count("name") != 0);
-	assert(args.count("img") != 0);
-	assert(args.count("type") != 0);
-	auto it = animationLookup.find(args.at("type"));
-	if (it == animationLookup.end()) {
-		Logger::instance().exit(RuntimeError{
-			"invalid animation type",
-			"ResourceManager::loadAnimation unknown type: " + args.at("type")
-		});
-	}
-	const AnimationType t = it->second;
-	const std::string& name = args.at("name");
-	AnimatedSpriteSource* src;
-	switch (t) {
-	case AnimationType::UNIFORM:
-#if defined(DEBUG_RM_LOAD_ANIMATION) && DEBUG_RM_LOAD_ANIMATION
-		DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadAnimation type UNIFORM \"" << name << "\" ..." << std::endl;
-#endif
-		src = loadAnimationUni(args);
-		break;
-	default:
-#if defined(DEBUG_RM_LOAD_ANIMATION) && DEBUG_RM_LOAD_ANIMATION
-		DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadAnimation type UNKNOWN \"" << name << '\"' << std::endl;
-#endif
-		assert(false);
-		src = nullptr;
-	}
-	if (src == nullptr) {
-		Logger::instance().exit(RuntimeError{
-			"unable to load animation",
-			"ResourceManager::loadAnimation name: " + name
-		});
-	}
-	animations[name] = src;
-	return src;
+std::shared_ptr<SaveData> ResourceManager::getSaveData(const std::string& fname) {
+	std::string filePath = getPath(ResourceType::SAVE, fname);
+	std::shared_ptr<SaveData> data = std::make_shared<SaveData>();
+	std::ifstream file{filePath};
+	boost::archive::text_iarchive ar{file};
+	ar & (*data);
+	return data;
 }
 
 
@@ -312,99 +352,182 @@ void ResourceManager::saveSaveData(const std::string& fname, const SaveData& dat
 }
 
 
-void ResourceManager::freeAnimation(const std::string& name) {
-	auto it = animations.find(name);
-	if (it == animations.end()) {
-		Logger::instance().exit(RuntimeError{
-			"invalid animation reference",
-			"ResourceManager::freeAnimation cannot find: " + name
-		});
-	}
-#if defined(DEBUG_RM_UNLOAD_ANIMATION) && DEBUG_RM_UNLOAD_ANIMATION
-	DEBUG_BEGIN << DEBUG_RM_PREPEND << "unloadAnimation \"" << name << "\" ..." << std::endl;
-#endif
-	decTextureRef(it->second->getImageName());
-	delete it->second;
-	animations.erase(it);
+std::shared_ptr<RoomData> ResourceManager::getRoomData(const int x, const int y) {
+	std::string filePath = getPath(ResourceType::ROOM, roomToString(x, y));
+	std::shared_ptr<RoomData> rd = JSONReader::loadRoom(filePath);
+	if (!rd)
+		Logger::instance().exit(RuntimeError{"unable to load room", roomToString(x, y)});
+	return rd;
 }
 
 
-void ResourceManager::freeSpriteSheet(const std::string& name) {
-	auto it = sheets.find(name);
-	if (it == sheets.end()) {
-		Logger::instance().exit(RuntimeError{
-			"invalid spritesheet reference",
-			"ResourceManager::freeSpriteSheet cannot find: " + name
-		});
+std::shared_ptr<CreatureData> ResourceManager::getCreatureData(const std::string& name) {
+	std::string filePath = getPath(ResourceType::CREATURE, name);
+	std::shared_ptr<CreatureData> data = JSONReader::loadCreature(filePath);
+	if (!data)
+		Logger::instance().exit(RuntimeError{"unable to load creature " + q(name)});
+	return data;
+}
+
+
+//! TODO remove
+Sprite ResourceManager::getSprite(const std::string& name) {
+	return sheets.at("default").res->get(name);
+}
+
+
+//! TODO move to Room
+SDL_Surface* ResourceManager::generateSurface(const RoomData& rd) const {
+	SDL_Rect dst;
+	SDL_Rect spriteBounds;
+	SpriteSheet* ss = sheets.at("default").res;
+	SDL_Surface* surf = SDL::newSurface24(Constants::roomWidth, Constants::roomHeight);
+	SDL_FillRect(surf, nullptr, SDL::mapRGB(surf->format, COLOR_BLACK));
+	Sprite spr;
+	for (auto it = rd.bg.cbegin(); it != rd.bg.cend(); ++it) {
+		spr = ss->get(it->name);
+		dst.x = it->x;
+		dst.y = it->y;
+		dst.w = spriteBounds.w;
+		dst.h = spriteBounds.h;
+		if (!spr.blit(surf, &dst)) {
+			// error drawing sprite, log error and continue
+			SDL::logError("ResourceManager::generateSurface SDL_BlitSurface");
+		}
 	}
-	--(it->second.counter);
-	if (it->second.counter == 0) {
-		decTextureRef(it->second.reference->getImageName());
-		delete it->second.reference;
-		sheets.erase(it);
+	return surf;
+}
+
+
+#ifndef NDEBUG
+
+// Print all information about loaded resources
+void ResourceManager::printResources(std::ostream& os) const {
+	using namespace ResManHelper;
+	os << "===== BEGIN ResourceManager::printResources() =====" << std::endl;
+	// print fonts
+	std::size_t i = 0;
+	os << "Member \"fonts\" (size " << fonts.size() << ')' << std::endl;
+	for (auto it = fonts.cbegin(); it != fonts.cend(); ++it, ++i) {
+		os << '\t' << i << " name: " << q(it->first.name) << " sz: " << it->first.size
+		   << " TTF_Font*: " << ptrToStr(it->second.res) << " count: " << it->second.count
+		   << std::endl;
+	}
+	os << std::endl;
+	// print images
+	i = 0;
+	os << "Member \"images\" (size " << images.size() << ')' << std::endl;
+	for (auto it = images.cbegin(); it != images.cend(); ++it) {
+		os << '\t' << i << " name: " << q(it->first) << " countSurf: " << it->second.countSurf
+		   << " countTex: " << it->second.countTex << " SDL_Surface*: " << ptrToStr(it->second.res.surf)
+		   << " SDL_Texture*: " << ptrToStr(it->second.res.tex) << std::endl;
+	}
+	os << std::endl;
+	// print animations
+	i = 0;
+	os << "Member \"animations\" (size " << animations.size() << ')' << std::endl;
+	for (auto it = animations.cbegin(); it != animations.cend(); ++it, ++i) {
+		os << '\t' << i << " name: " << q(it->first) << " AnimatedSpriteSource*: " << ptrToStr(it->second)
+		   << " imgName: " << q(it->second->getImageName()) << std::endl;
+	}
+	os << std::endl;
+	// print sheets
+	os << "Member \"sheets\" (size " << sheets.size() << ')' << std::endl;
+	for (auto it = sheets.cbegin(); it != sheets.cend(); ++it, ++i) {
+		os << '\t' << i << " name: " << q(it->first) << " countSurf: " << it->second.countSurf << " countTex: "
+		   << it->second.countTex << " SpriteSheet*: " << ptrToStr(it->second.res)
+		   << " imgName: " << q(it->second.res->imgName) << " surf: " << ptrToStr(it->second.res->surf)
+		   << " tex: " << ptrToStr(it->second.res->tex) << std::endl;
+		os << "\t\tSPRITES ";
+		if (it->second.res->sprites.empty())
+			os << "empty!" << std::endl;
+		for (auto it2 = it->second.res->sprites.cbegin(); it2 != it->second.res->sprites.cend(); ++it2) {
+			os << q(it2->first) << ": " << rectToStr(it2->second) << ", ";
+		}
+		os << std::endl;
+	}
+	os << "===== END ResourceManager::printResources() =====" << std::endl;
+}
+
+#endif // NDEBUG
+
+
+ResourceManager::ImageResource* ResourceManager::getImage(const std::string& name, const bool surf, const bool tex) {
+	auto it = images.find(name);
+	if (it != images.end()) {
+		// Make sure that Image has the needed data
+		if (surf && (it->second.res.surf == nullptr)) {
+			// need to load surface, either from texture or from disk
+			assert(false);	//! TODO not implemented
+		}
+		if (tex && (it->second.res.tex == nullptr)) {
+			assert(it->second.res.surf != nullptr);
+			it->second.res.tex = SDL::newTexture(it->second.res.surf);
+		}
+		incImgCounter(it->second, surf, tex);
+		return &it->second.res;
+	}
+	else {
+		return loadImage(name, surf, tex);
 	}
 }
 
 
-// caller must free returned surface, but not texture
-std::pair<SDL_Surface*, SDL_Texture*> ResourceManager::loadImage(const std::string& name) {
-	assert(textures.find(name) == textures.end());
-	std::pair<SDL_Surface*, SDL_Texture*> ret;
+ResourceManager::ImageResource* ResourceManager::loadImage(const std::string& name, const bool surf, const bool tex) {
+	assert(images.find(name) == images.end());
+	assert(!(!surf && !tex));	// at least one should be true
 	std::string path = getPath(ResourceType::IMAGE, name);
-	ret.first = SDL::loadBMP(path);
+	SDL_Surface* surface = SDL::loadBMP(path);
 	std::pair<bool, Color> colorKey = readColorKey(name);
-	if (colorKey.first && !SDL::setColorKey(ret.first, colorKey.second)) {
+	if (colorKey.first && !SDL::setColorKey(surface, colorKey.second)) {
 		SDL::logError("ResourceManager::loadImage SDL::setColorKey");
 	}
-	ret.second = SDL::newTexture(ret.first);
-#if defined(DEBUG_RM_TEX_REF) && DEBUG_RM_TEX_REF
-	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_TEX_PREPEND << "NEW \"" << name << '\"' << std::endl;
+#if defined(DEBUG_RM_IMG_REF) && DEBUG_RM_IMG_REF
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_IMG_PREPEND << "NEW " << q(name) << std::endl;
 #endif
 	// keep track of references
-	textures[name] = {ret.second, 1};
-	return ret;
-}
-
-
-// load image if it hasn't been loaded, else return existing texture
-// Note: increments texture reference
-SDL_Texture* ResourceManager::autoLoadImage(const std::string& name) {
-	auto it = textures.find(name);
-	if (it != textures.end()) {
-		incTextureRef(name);
-		return it->second.reference;
+	ImgCounter<ImageResource> ic;
+	ic.res.name = name;
+	if (surf) {
+		ic.res.surf = surface;
+		ic.countSurf = 1;
 	}
-	std::pair<SDL_Surface*, SDL_Texture*> image = loadImage(name);
-	SDL::free(image.first);
-	return image.second;
+	if (tex) {
+		if (!surf) {
+			ic.res.tex = SDL::toTexture(surface);
+			ic.res.surf = nullptr;
+		}
+		else {
+			ic.res.tex = SDL::newTexture(surface);
+		}
+		ic.countTex = 1;
+	}
+	auto p = images.insert(std::make_pair(name, ic));
+	assert(p.second);	// check insert successful
+	return &p.first->second.res;
 }
 
 
-SpriteSheet* ResourceManager::loadSpriteSheet(const std::string& name) {
-	assert(sheets.find(name) == sheets.end());
+SpriteSheet* ResourceManager::loadSpriteSheet(const std::string& name, const bool surf, const bool tex) {
+	assert(sheets.find(name) == sheets.end());	// the sheet must not be loaded already
 	std::string filePath = getPath(ResourceType::SPRITE, name);
 	std::shared_ptr<SpriteSheetData> data = JSONReader::loadSpriteSheet(filePath);
 	if (!data)
-		Logger::instance().exit(RuntimeError{"unable to load spritesheet", name});
-	// load image
-	SDL_Texture* tex = autoLoadImage(data->image);
-	SpriteSheet* ss = new SpriteSheet{tex, name};
-	sheets[name] = ResourceCounter<SpriteSheet>{ss, 1};
+		Logger::instance().exit(RuntimeError{"unable to load spritesheet " + q(name)});
+	ImageResource* const ir = getImage(data->image, surf, tex);
+	SpriteSheet* ss = new SpriteSheet;
+	ss->imgName = data->image;
+	ss->surf = ir->surf;
+	ss->tex = ir->tex;
+	// add to sheets
+	ImgCounter<SpriteSheet*> icSS;
+	icSS.res = ss;
+	icSS.countSurf = toCounterType(surf);
+	icSS.countTex = toCounterType(tex);
+	sheets[name] = icSS;
 	// process sprites
-#ifndef NDEBUG
-	// for checking bounds
-	int width = -1;
-	int height = -1;
-	SDL_QueryTexture(tex, nullptr, nullptr, &width, &height);
-#endif // NDEBUG
 	for (auto it = data->sprites.begin(); it != data->sprites.end(); ++it) {
-#ifndef NDEBUG
-		if ((it->second.x + it->second.w > width) || (it->second.y + it->second.h > height)) {
-			// log if sprite boundary not within bounds, but keep processing
-			std::cerr << "ResourceManager::loadSpriteSheet " + name + ',' + it->first + " exceeds bounds";
-		}
-#endif // NDEBUG
-		ss->add(it->first, it->second);
+		ss->sprites[it->first] = it->second;
 	}
 	return ss;
 }
@@ -423,7 +546,8 @@ AnimatedSpriteSource* ResourceManager::loadAnimationUni(const std::map<std::stri
 #endif // NDEBUG
 	int tmpInt, tmpInt2;
 	int x, y, dx, dy, frames;
-	src->setTexture(autoLoadImage(args.at("img")));
+	ImageResource* const ir = getImage(args.at("img"), false, true);	// get texture
+	src->setTexture(ir->tex);
 	tmpInt = std::stoi(args.at("dur"));
 	src->setTicks(static_cast<unsigned int>(tmpInt));
 	tmpInt = std::stoi(args.at("w"));
@@ -440,29 +564,79 @@ AnimatedSpriteSource* ResourceManager::loadAnimationUni(const std::map<std::stri
 }
 
 
-void ResourceManager::incTextureRef(const std::string& name) {
-	auto it = textures.find(name);
-	assert(it != textures.end());
-	++(it->second.counter);
-#if defined(DEBUG_RM_TEX_REF) && DEBUG_RM_TEX_REF
-	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_TEX_PREPEND << "INC to " << it->second.counter
-	            << " for \"" << name << '\"' << std::endl;
-#endif // DEBUG_RM_TEX_REF
+void ResourceManager::incImageCounter(ImgCounter<ImageResource>& ic, const bool surf, const bool tex) {
+	using namespace ResManHelper;
+	incImgCounter(ic, surf, tex);
+#if defined(DEBUG_RM_IMG_REF) && DEBUG_RM_IMG_REF
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_IMG_PREPEND;
+	if (surf)
+		DEBUG_OS << "INC SURF " << ic.countSurf << ' ';
+	if (tex)
+		DEBUG_OS << "INC TEX " << ic.countTex << ' ';
+	DEBUG_OS << "for " << q(ic.res.name) << std::endl;
+#endif // DEBUG_RM_IMG_REF
 }
 
 
-void ResourceManager::decTextureRef(const std::string& name) {
-	auto it = textures.find(name);
-	assert(it != textures.end());
-	--(it->second.counter);
-#if defined(DEBUG_RM_TEX_REF) && DEBUG_RM_TEX_REF
-	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_TEX_PREPEND << "DEC to " << it->second.counter
-	            << " for \"" << name << '\"' << std::endl;
-#endif // DEBUG_RM_TEX_REF
-	if (it->second.counter == 0) {	// free texture
-		SDL::free(it->second.reference);
-		textures.erase(it);
+// When return value true, erase this from map.
+bool ResourceManager::decImageCounter(ImgCounter<ImageResource>& ic, const bool surf, const bool tex) {
+	using namespace ResManHelper;
+	decImgCounter(ic, surf, tex);
+#if defined(DEBUG_RM_IMG_REF) && DEBUG_RM_IMG_REF
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_IMG_PREPEND;
+	if (surf)
+		DEBUG_OS << "DEC SURF " << ic.countSurf << ' ';
+	if (tex)
+		DEBUG_OS << "DEC TEX " << ic.countTex << ' ';
+	DEBUG_OS << "for " << q(ic.res.name) << std::endl;
+#endif // DEBUG_RM_IMG_REF
+	if (ic.countSurf == 0) {
+		SDL::free(ic.res.surf);
+		ic.res.surf = nullptr;
+		if (ic.countTex == 0)
+			return true;
 	}
+	if (ic.countTex == 0) {
+		SDL::free(ic.res.tex);
+		ic.res.tex = nullptr;
+		if (ic.countSurf == 0)
+			return true;
+	}
+	return false;
+}
+
+
+void ResourceManager::incSpriteSheetCounter(ImgCounter<SpriteSheet*>& ic, const bool surf, const bool tex) {
+	using namespace ResManHelper;
+	incImgCounter(ic, surf, tex);
+#if defined(DEBUG_RM_SS_REF) && DEBUG_RM_SS_REF
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_SS_PREPEND;
+	if (surf)
+		DEBUG_OS << "INC SURF " << ic.countSurf << ' ';
+	if (tex)
+		DEBUG_OS << "INC TEX " << ic.countTex << ' ';
+	if (!surf && !tex)
+		DEBUG_OS << "INC NO CHANGE ";
+	DEBUG_OS << "for " << q(ic.res->imgName) << std::endl;
+#endif // DEBUG_RM_SS_REF
+}
+
+
+// Note: this only decreases image references and spritesheet references
+void ResourceManager::decSpriteSheetCounter(ImgCounter<SpriteSheet*>& ic, const bool surf, const bool tex) {
+	using namespace ResManHelper;
+	auto itImg = images.find(ic.res->imgName);
+	decImgCounter(ic, surf, tex);
+#if defined(DEBUG_RM_SS_REF) && DEBUG_RM_SS_REF
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << DEBUG_RM_SS_PREPEND;
+	if (surf)
+		DEBUG_OS << "DEC SURF " << ic.countSurf << ' ';
+	if (tex)
+		DEBUG_OS << "DEC TEX " << ic.countTex << ' ';
+	DEBUG_OS << "for " << q(ic.res->imgName) << std::endl;
+#endif
+	if (decImageCounter(itImg->second, surf, tex))
+		images.erase(itImg);
 }
 
 

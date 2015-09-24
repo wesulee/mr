@@ -166,7 +166,7 @@ void CreatureManager::unloadCreature(const CreatureType ct) {
 			GameData::instance().resources->freeAnimation(it->name);
 			break;
 		case CResourceType::SPRITESHEET:
-			GameData::instance().resources->freeSpriteSheet(it->name);
+			GameData::instance().resources->freeSpriteSheet(it->name, false, true);
 			break;
 		}
 	}

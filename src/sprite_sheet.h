@@ -5,24 +5,32 @@
 #include <unordered_map>
 
 
+class ResourceManager;
 class Sprite;
 
 
-// A Sprite is valid only during lifetime of the instance that created it.
 class SpriteSheet {
+	friend ResourceManager;
 public:
-	SpriteSheet(SDL_Texture*, const std::string&);
+	SpriteSheet() = default;
 	~SpriteSheet() {}
-	void add(const std::string&, const SDL_Rect&);
 	Sprite get(const std::string&) const;
 	const SDL_Rect& getBounds(const std::string&) const;
-	SDL_Texture* getTexture(void);	// should probably only be called by ResourceManager
+	SDL_Surface* getSurface(void);
+	SDL_Texture* getTexture(void);
 	const std::string& getImageName(void) const;
 private:
 	std::unordered_map<std::string, SDL_Rect> sprites;
 	std::string imgName;
-	SDL_Texture* tex;
+	SDL_Surface* surf = nullptr;
+	SDL_Texture* tex = nullptr;
 };
+
+
+inline
+SDL_Surface* SpriteSheet::getSurface() {
+	return surf;
+}
 
 
 inline

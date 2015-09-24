@@ -15,7 +15,6 @@ class SpriteSheet;
 
 
 struct RoomConnSpriteData {
-	SDL_Surface* surf;
 	SpriteSheet* ss;
 	std::pair<int, int> szNS;
 	std::pair<int, int> szWE;
@@ -68,9 +67,9 @@ public:
 	void updateEntity(GameEntity&, const int, const int) const;
 	void notifyClear(void);	// room has been cleared
 private:
+	RoomStruct* room = nullptr;
 	RoomConnSpriteData sprData;
 	SDL_Rect drawRect;
 	mutable Rectangle test;
-	RoomStruct* room = nullptr;
 	bool cleared = false;
 };

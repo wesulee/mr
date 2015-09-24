@@ -8,7 +8,6 @@
 #include "resource_manager.h"
 #include "sprite.h"
 #include "sprite_sheet.h"
-#include "shapes.h"
 #include <cassert>
 
 
@@ -17,6 +16,12 @@ namespace RoomConnHelper {
 	constexpr char sprNS[] = "nr_s";
 	constexpr char sprNW[] = "nr_w";
 	constexpr char sprNE[] = "nr_e";
+}
+
+
+namespace RoomHelper {
+	// default SpriteSheet name
+	constexpr char defSSName[] = "default";
 }
 
 
@@ -91,39 +96,39 @@ void RoomConnections::render() {
 		}
 		dst.x = 0;
 		dst.y = 0;
-		dst.w = spr.width();
-		dst.h = spr.height();
+		dst.w = spr.getDrawWidth();
+		dst.h = spr.getDrawHeight();
 		for (auto& p : conn[i]) {
 			unsigned int count;
 			if (isNS) {
-				surf = SDL::newSurface32(p.pos.second - p.pos.first + 1, spr.height());
-				count = static_cast<decltype(count)>(surf->w / spr.width());
+				surf = SDL::newSurface32(p.pos.second - p.pos.first + 1, dst.h);
+				count = static_cast<decltype(count)>(surf->w / dst.w);
 				float cur = 0;
 				float delta = (static_cast<float>(surf->w) / count);
 				for (unsigned int j = 0; j < count; ++j) {
 					if (j == (count-1)) {
-						dst.x = (surf->w - spr.width());
-						SDL_BlitSurface(sprData->surf, spr.getTextureBounds(), surf, &dst);
+						dst.x = (surf->w - dst.w);
+						spr.blit(surf, &dst);
 					}
 					else {
-						SDL_BlitSurface(sprData->surf, spr.getTextureBounds(), surf, &dst);
+						spr.blit(surf, &dst);
 						cur += delta;
 						dst.x = static_cast<int>(cur);
 					}
 				}
 			}
 			else {
-				surf = SDL::newSurface32(spr.width(), p.pos.second - p.pos.first + 1);
-				count = static_cast<decltype(count)>(surf->h / spr.height());
+				surf = SDL::newSurface32(dst.w, p.pos.second - p.pos.first + 1);
+				count = static_cast<decltype(count)>(surf->h / dst.h);
 				float cur = 0;
 				float delta = (static_cast<float>(surf->h) / count);
 				for (unsigned int j = 0; j < count; ++j) {
 					if (j == (count-1)) {
-						dst.y = (surf->h - spr.height());
-						SDL_BlitSurface(sprData->surf, spr.getTextureBounds(), surf, &dst);
+						dst.y = (surf->h - dst.h);
+						spr.blit(surf, &dst);
 					}
 					else {
-						SDL_BlitSurface(sprData->surf, spr.getTextureBounds(), surf, &dst);
+						spr.blit(surf, &dst);
 						cur += delta;
 						dst.y = static_cast<int>(cur);
 					}
@@ -166,14 +171,13 @@ RoomStruct::~RoomStruct() {
 
 
 Room::Room() {
-	sprData.surf = GameData::instance().resources->getDefaultSurface();
-	sprData.ss = GameData::instance().resources->getSpriteSheet("default");
+	sprData.ss = GameData::instance().resources->getSpriteSheet(RoomHelper::defSSName, true, false);
 	Sprite sprConn = sprData.ss->get(RoomConnHelper::sprNN);
-	sprData.szNS.first = sprConn.width();
-	sprData.szNS.second = sprConn.height();
+	sprData.szNS.first = sprConn.getDrawWidth();
+	sprData.szNS.second = sprConn.getDrawHeight();
 	sprConn = sprData.ss->get(RoomConnHelper::sprNW);
-	sprData.szWE.first = sprConn.width();
-	sprData.szWE.second = sprConn.height();
+	sprData.szWE.first = sprConn.getDrawWidth();
+	sprData.szWE.second = sprConn.getDrawHeight();
 	drawRect.x = Constants::RoomX;
 	drawRect.y = Constants::RoomY;
 	drawRect.w = Constants::roomWidth;
@@ -184,6 +188,7 @@ Room::Room() {
 Room::~Room() {
 	if (room != nullptr)
 		delete room;
+	GameData::instance().resources->freeSpriteSheet(RoomHelper::defSSName, true, false);
 }
 
 
