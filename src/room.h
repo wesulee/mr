@@ -1,6 +1,7 @@
 #pragma once
 
 #include "constants.h"
+#include "json_reader.h"
 #include "room_inc.h"
 #include "room_qtree.h"
 #include "sdl_helper.h"
@@ -10,7 +11,6 @@
 
 
 class GameEntity;
-class RoomData;
 class SpriteSheet;
 
 
@@ -34,7 +34,7 @@ public:
 	RoomConnections() = default;
 	~RoomConnections();
 	void draw(Canvas&);
-	void set(RoomData&, RoomConnSpriteData*);
+	void set(rapidjson::Document&, RoomConnSpriteData*);
 	void render(void);
 private:
 	void drawNS(Canvas&, std::vector<RoomConnection>&, const int, const int);
@@ -62,11 +62,13 @@ public:
 	Room();
 	~Room();
 	void draw(Canvas&);
-	void set(RoomData&);
+	void set(rapidjson::Document&);
 	bool space(const int, const int, const int, const int) const;
 	void updateEntity(GameEntity&, const int, const int) const;
 	void notifyClear(void);	// room has been cleared
 private:
+	SDL_Surface* renderBg(const rapidjson::Value&);
+
 	RoomStruct* room = nullptr;
 	RoomConnSpriteData sprData;
 	SDL_Rect drawRect;

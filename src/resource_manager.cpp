@@ -8,8 +8,6 @@
 #include "font_resource.h"
 #include "game_data.h"
 #include "image.h"
-#include "json_data.h"
-#include "json_reader.h"
 #include "logger.h"
 #include "save_data.h"
 #include "sprite.h"
@@ -22,7 +20,6 @@
 #include <cstdint>	// uintptr_t
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <sstream>
 #include <vector>
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -61,17 +58,6 @@ static std::string rectToStr(const SDL_Rect& r) {
 }
 
 } // namespace ResManHelper
-
-
-// returns missing key, empty string if ok
-template<class T>
-static std::string checkMapKeysExists(const T& map, const std::vector<std::string>& keys) {
-	for (const auto& k : keys) {
-		if (map.count(k) == 0)
-			return k;
-	}
-	return std::string{};
-}
 
 
 inline
@@ -126,26 +112,23 @@ UniformAnimatedSpriteSource* ResourceManager::getUSprSrc(const std::string& name
 
 
 // Animations always load image as texture
-AnimatedSpriteSource* ResourceManager::loadAnimation(const std::map<std::string, std::string>& args) {
-	assert(args.count("name") != 0);
-	assert(args.count("img") != 0);
-	assert(args.count("type") != 0);
-	auto it = animationLookup.find(args.at("type"));
+AnimatedSpriteSource* ResourceManager::loadAnimation(const rapidjson::Value& data) {
+	assert(data.HasMember("name"));
+	assert(data.HasMember("img"));
+	assert(data.HasMember("type"));
+	auto it = animationLookup.find(data["type"].GetString());
 	if (it == animationLookup.end()) {
 		Logger::instance().exit(RuntimeError{
 			"invalid animation type",
-			"ResourceManager::loadAnimation unknown type: " + args.at("type")
+			"ResourceManager::loadAnimation unknown type: " + q(std::string{data["type"].GetString()})
 		});
 	}
 	const AnimationType t = it->second;
-	const std::string& name = args.at("name");
+	std::string name = data["name"].GetString();
 	AnimatedSpriteSource* src;
 	switch (t) {
 	case AnimationType::UNIFORM:
-#if defined(DEBUG_RM_LOAD_ANIMATION) && DEBUG_RM_LOAD_ANIMATION
-		DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadAnimation type UNIFORM " << q(name) << std::endl;
-#endif
-		src = loadAnimationUni(args);
+		src = loadAnimationUni(data);
 		break;
 	default:
 #if defined(DEBUG_RM_LOAD_ANIMATION) && DEBUG_RM_LOAD_ANIMATION
@@ -352,18 +335,20 @@ void ResourceManager::saveSaveData(const std::string& fname, const SaveData& dat
 }
 
 
-std::shared_ptr<RoomData> ResourceManager::getRoomData(const int x, const int y) {
+std::shared_ptr<rapidjson::Document> ResourceManager::getRoomData(const int x, const int y) {
+	assert((x >= 0) && (y >= 0));
+	assert((x < Constants::MapCountX) && (y < Constants::MapCountY));
 	std::string filePath = getPath(ResourceType::ROOM, roomToString(x, y));
-	std::shared_ptr<RoomData> rd = JSONReader::loadRoom(filePath);
-	if (!rd)
+	std::shared_ptr<rapidjson::Document> data = JSONReader::read(filePath);
+	if (!data)
 		Logger::instance().exit(RuntimeError{"unable to load room", roomToString(x, y)});
-	return rd;
+	return data;
 }
 
 
-std::shared_ptr<CreatureData> ResourceManager::getCreatureData(const std::string& name) {
+std::shared_ptr<rapidjson::Document> ResourceManager::getCreatureData(const std::string& name) {
 	std::string filePath = getPath(ResourceType::CREATURE, name);
-	std::shared_ptr<CreatureData> data = JSONReader::loadCreature(filePath);
+	std::shared_ptr<rapidjson::Document> data = JSONReader::read(filePath);
 	if (!data)
 		Logger::instance().exit(RuntimeError{"unable to load creature " + q(name)});
 	return data;
@@ -373,29 +358,6 @@ std::shared_ptr<CreatureData> ResourceManager::getCreatureData(const std::string
 //! TODO remove
 Sprite ResourceManager::getSprite(const std::string& name) {
 	return sheets.at("default").res->get(name);
-}
-
-
-//! TODO move to Room
-SDL_Surface* ResourceManager::generateSurface(const RoomData& rd) const {
-	SDL_Rect dst;
-	SDL_Rect spriteBounds;
-	SpriteSheet* ss = sheets.at("default").res;
-	SDL_Surface* surf = SDL::newSurface24(Constants::roomWidth, Constants::roomHeight);
-	SDL_FillRect(surf, nullptr, SDL::mapRGB(surf->format, COLOR_BLACK));
-	Sprite spr;
-	for (auto it = rd.bg.cbegin(); it != rd.bg.cend(); ++it) {
-		spr = ss->get(it->name);
-		dst.x = it->x;
-		dst.y = it->y;
-		dst.w = spriteBounds.w;
-		dst.h = spriteBounds.h;
-		if (!spr.blit(surf, &dst)) {
-			// error drawing sprite, log error and continue
-			SDL::logError("ResourceManager::generateSurface SDL_BlitSurface");
-		}
-	}
-	return surf;
 }
 
 
@@ -509,55 +471,56 @@ ResourceManager::ImageResource* ResourceManager::loadImage(const std::string& na
 
 
 SpriteSheet* ResourceManager::loadSpriteSheet(const std::string& name, const bool surf, const bool tex) {
+	namespace rj = rapidjson;
 	assert(sheets.find(name) == sheets.end());	// the sheet must not be loaded already
 	std::string filePath = getPath(ResourceType::SPRITE, name);
-	std::shared_ptr<SpriteSheetData> data = JSONReader::loadSpriteSheet(filePath);
+	std::shared_ptr<rapidjson::Document> data = JSONReader::read(filePath);
 	if (!data)
 		Logger::instance().exit(RuntimeError{"unable to load spritesheet " + q(name)});
-	ImageResource* const ir = getImage(data->image, surf, tex);
 	SpriteSheet* ss = new SpriteSheet;
-	ss->imgName = data->image;
+	ss->imgName = (*data)["img"].GetString();
+	{	// process sprites
+		SDL_Rect tmpRect;
+		std::string tmpStr;
+		const rj::Value& sprites = (*data)["sprites"];
+		for (rj::Value::ConstValueIterator it = sprites.Begin(); it != sprites.End(); ++it) {
+			rj::Value::ConstValueIterator it2 = it->Begin();
+			tmpStr = it2->GetString();
+			++it2;
+			JSONHelper::readRect(tmpRect, it2);
+			ss->sprites.emplace(tmpStr, tmpRect);
+		}
+	}
+	ImageResource* const ir = getImage(ss->imgName, surf, tex);
 	ss->surf = ir->surf;
 	ss->tex = ir->tex;
-	// add to sheets
+	// insert into sheets
 	ImgCounter<SpriteSheet*> icSS;
 	icSS.res = ss;
 	icSS.countSurf = toCounterType(surf);
 	icSS.countTex = toCounterType(tex);
 	sheets[name] = icSS;
-	// process sprites
-	for (auto it = data->sprites.begin(); it != data->sprites.end(); ++it) {
-		ss->sprites[it->first] = it->second;
-	}
 	return ss;
 }
 
 
-AnimatedSpriteSource* ResourceManager::loadAnimationUni(const std::map<std::string, std::string>& args) {
+AnimatedSpriteSource* ResourceManager::loadAnimationUni(const rapidjson::Value& data) {
+#if defined(DEBUG_RM_LOAD_ANIMATION) && DEBUG_RM_LOAD_ANIMATION
+	DEBUG_BEGIN << DEBUG_RM_PREPEND << "loadAnimation type UNIFORM " << q(data["name"].GetString()) << std::endl;
+#endif
 	UniformAnimatedSpriteSource* src = new UniformAnimatedSpriteSource;
-	src->setImageName(args.at("img"));
-#ifndef NDEBUG
-	std::string missing = checkMapKeysExists(args, {"img", "dur", "w", "h", "x", "y", "dx", "dy", "frames"});
-	if (!missing.empty()) {
-		Logger::instance().log("ResourceManager::loadAnimationUni missing argument " + missing);
-		delete src;
-		return nullptr;
-	}
-#endif // NDEBUG
-	int tmpInt, tmpInt2;
+	src->setImageName(data["img"].GetString());
 	int x, y, dx, dy, frames;
-	ImageResource* const ir = getImage(args.at("img"), false, true);	// get texture
+	ImageResource* const ir = getImage(src->getImageName(), false, true);	// get texture
+	assert(ir->tex != nullptr);
 	src->setTexture(ir->tex);
-	tmpInt = std::stoi(args.at("dur"));
-	src->setTicks(static_cast<unsigned int>(tmpInt));
-	tmpInt = std::stoi(args.at("w"));
-	tmpInt2 = std::stoi(args.at("h"));
-	src->setSize(tmpInt, tmpInt2);
-	x = std::stoi(args.at("x"));
-	y = std::stoi(args.at("y"));
-	dx = std::stoi(args.at("dx"));
-	dy = std::stoi(args.at("dy"));
-	frames = std::stoi(args.at("frames"));
+	src->setTicks(data["dur"].GetUint());
+	src->setSize(data["w"].GetInt(), data["h"].GetInt());
+	x = data["x"].GetInt();
+	y = data["y"].GetInt();
+	dx = data["dx"].GetInt();
+	dy = data["dy"].GetInt();
+	frames = data["frames"].GetInt();
 	for (int i = 0; i < frames; ++i, x += dx, y += dy)
 		src->add(x, y);
 	return src;

@@ -1,13 +1,13 @@
 #pragma once
 
 #include "font.h"
+#include "json_reader.h"
 #include "sdl_helper.h"
 #include "text_renderer.h"
 #include <boost/functional/hash.hpp>
 #include <cassert>
 #include <cstddef>
 #include <iostream>		// printResources()
-#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -18,9 +18,7 @@
 class AnimatedSpriteSource;
 enum class AnimationType;
 class Color;
-class CreatureData;
 class FontResource;
-class RoomData;
 class SaveData;
 class Sprite;
 class SpriteSheet;
@@ -96,7 +94,7 @@ public:
 	void init(void);
 	// animation
 	UniformAnimatedSpriteSource* getUSprSrc(const std::string&);
-	AnimatedSpriteSource* loadAnimation(const std::map<std::string, std::string>&);
+	AnimatedSpriteSource* loadAnimation(const rapidjson::Value&);
 	void freeAnimation(const std::string&);
 	// font
 	TextRenderer* getDefaultTR(void);
@@ -108,16 +106,15 @@ public:
 	// other
 	std::shared_ptr<SaveData> getSaveData(const std::string&);
 	void saveSaveData(const std::string&, const SaveData&);
-	std::shared_ptr<RoomData> getRoomData(const int, const int);
-	std::shared_ptr<CreatureData> getCreatureData(const std::string&);
+	std::shared_ptr<rapidjson::Document> getRoomData(const int, const int);
+	std::shared_ptr<rapidjson::Document> getCreatureData(const std::string&);
 	Sprite getSprite(const std::string&);
-	SDL_Surface* generateSurface(const RoomData&) const;
 	void printResources(std::ostream&) const;
 private:
 	ImageResource* getImage(const std::string&, const bool, const bool);
 	ImageResource* loadImage(const std::string&, const bool, const bool);
 	SpriteSheet* loadSpriteSheet(const std::string&, const bool, const bool);
-	AnimatedSpriteSource* loadAnimationUni(const std::map<std::string, std::string>&);
+	AnimatedSpriteSource* loadAnimationUni(const rapidjson::Value&);
 	void incImageCounter(ImgCounter<ImageResource>&, const bool, const bool);
 	bool decImageCounter(ImgCounter<ImageResource>&, const bool, const bool);
 	void incSpriteSheetCounter(ImgCounter<SpriteSheet*>&, const bool, const bool);

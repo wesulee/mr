@@ -28,7 +28,7 @@ void Sprite::draw(Canvas& can, const int x, const int y) {
 bool Sprite::blit(SDL_Surface* dst, SDL_Rect* dstRect) {
 	assert(surf != nullptr);
 	assert(dst != nullptr);
-	return (SDL_BlitSurface(surf, &clip, dst, dstRect) != 0);
+	return (SDL_BlitSurface(surf, &clip, dst, dstRect) == 0);
 }
 
 

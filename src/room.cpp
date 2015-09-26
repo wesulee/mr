@@ -3,7 +3,6 @@
 #include "constants.h"
 #include "entity.h"
 #include "game_data.h"
-#include "json_data.h"
 #include "logger.h"
 #include "resource_manager.h"
 #include "sprite.h"
@@ -16,6 +15,19 @@ namespace RoomConnHelper {
 	constexpr char sprNS[] = "nr_s";
 	constexpr char sprNW[] = "nr_w";
 	constexpr char sprNE[] = "nr_e";
+
+	template<class T>	// T is array
+	void procRoomConnecting(const T& array, std::vector<RoomConnection>& vec) {
+		namespace rj = rapidjson;
+		vec.reserve(array.Size() / 2);
+		// process one pair at a time
+		RoomConnection tmpRC;
+		for (rj::Value::ConstValueIterator it = array.Begin(); it != array.End();) {
+			tmpRC.pos.first = JSONHelper::getIntAndInc(it);
+			tmpRC.pos.second = JSONHelper::getIntAndInc(it);
+			vec.push_back(tmpRC);
+		}
+	}
 }
 
 
@@ -56,15 +68,13 @@ void RoomConnections::draw(Canvas& can) {
 }
 
 
-void RoomConnections::set(RoomData& rd, RoomConnSpriteData* sd) {
+void RoomConnections::set(rapidjson::Document& data, RoomConnSpriteData* sd) {
 	sprData = sd;
-	RoomConnection tmp;
-	for (std::size_t i = 0; i < 4; ++i) {
-		for (const auto& p : rd.connecting[i]) {
-			tmp.pos = p;
-			conn[i].push_back(tmp);
-		}
-	}
+	const rapidjson::Value& connections = data["conn"];
+	RoomConnHelper::procRoomConnecting(connections["n"], conn[SideToIndex(Side::NORTH)]);
+	RoomConnHelper::procRoomConnecting(connections["e"], conn[SideToIndex(Side::EAST)]);
+	RoomConnHelper::procRoomConnecting(connections["s"], conn[SideToIndex(Side::SOUTH)]);
+	RoomConnHelper::procRoomConnecting(connections["w"], conn[SideToIndex(Side::WEST)]);
 }
 
 
@@ -206,8 +216,10 @@ void Room::draw(Canvas& can) {
 }
 
 
-void Room::set(RoomData& rd) {
+void Room::set(rapidjson::Document& data) {
+	namespace rj = rapidjson;
 	assert(room == nullptr);
+	// setup RoomStruct defaults
 	room = new RoomStruct;
 	room->block.setBounds(Rectangle{
 		// block is 1 pixel longer on each side to add 4 block rects
@@ -227,18 +239,23 @@ void Room::set(RoomData& rd) {
 	test.resize(1, bounds.height());
 	test.move(bounds.getX(), bounds.getY());
 	room->block.insert(test);	// left
-	test.move(test.getX() + bounds.width() - 1 , test.getY());
+	test.move(test.getX() + bounds.width() - 1, test.getY());
 	room->block.insert(test);	// right
-	// add room
-	for (const auto& r : rd.block) {
-		test.resize(r.w, r.h);
-		test.move(Constants::RoomX + r.x, Constants::RoomY + r.y);
-		room->block.insert(test);
+	{	// process block data
+		SDL_Rect tmpRect;
+		const rj::Value& block = data["block"];
+		for (rj::Value::ConstValueIterator it = block.Begin(); it != block.End(); ++it) {
+			rj::Value::ConstValueIterator it2 = it->Begin();
+			JSONHelper::readRect(tmpRect, it2);
+			test.resize(tmpRect.w, tmpRect.h);
+			test.move(Constants::RoomX + tmpRect.x, Constants::RoomY + tmpRect.y);
+			room->block.insert(test);
+		}
 	}
 	// set background image
-	room->bgSurf = GameData::instance().resources->generateSurface(rd);
+	room->bgSurf = renderBg(data["background"]);
 	room->bgTex = SDL::newTexture(room->bgSurf);
-	room->connections.set(rd, &sprData);
+	room->connections.set(data, &sprData);
 }
 
 
@@ -279,4 +296,26 @@ void Room::updateEntity(GameEntity& entity, const int x, const int y) const {
 void Room::notifyClear() {
 	room->connections.render();
 	cleared = true;
+}
+
+
+// Render background image
+SDL_Surface* Room::renderBg(const rapidjson::Value& data) {
+	namespace rj = rapidjson;
+	SDL_Rect dstRect;
+	SDL_Surface* surf = SDL::newSurface24(Constants::roomWidth, Constants::roomHeight);
+	SDL_FillRect(surf, nullptr, SDL::mapRGB(surf->format, COLOR_BLACK));
+	Sprite spr;
+	for (rj::Value::ConstValueIterator it = data.Begin(); it != data.End(); ++it) {
+		spr = sprData.ss->get((*it)["name"].GetString());
+		dstRect.w = spr.getDrawWidth();
+		dstRect.h = spr.getDrawHeight();
+		dstRect.x = (*it)["x"].GetInt();
+		dstRect.y = (*it)["y"].GetInt();
+		if (spr.blit(surf, &dstRect)) {
+			// error drawing sprite, log error and continue
+			SDL::logError("Room::renderBg blit");
+		}
+	}
+	return surf;
 }

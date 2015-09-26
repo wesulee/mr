@@ -1,9 +1,7 @@
 #include "creature_manager.h"
 #include "canvas.h"
 #include "creature.h"
-#include "exception.h"
 #include "game_data.h"
-#include "json_data.h"
 #include "logger.h"
 #include "parameters.h"
 #include "player.h"
@@ -104,20 +102,21 @@ bool CreatureManager::intersectsPlayer(const Circle& circ) const {
 }
 
 
-void CreatureManager::loadRoom(std::shared_ptr<RoomData> rd) {
+// room data
+void CreatureManager::setRoom(rapidjson::Document& data) {
+	namespace rj = rapidjson;
 	// process loading/unloading creatures
 	// first populate creatures used in room
-	CreatureTypeSet roomCreatures;
-	for (auto& cd : rd->creatures) {
-		cd.type = getCreatureType(cd.name);
-		if (cd.type == CreatureType::NONE) {
-			Logger::instance().exit(RuntimeError{
-				"error loading room",
-				"CreatureManager::loadRoom creature \"" + cd.name + "\" invalid"
-			});
-		}
-		roomCreatures.insert(cd.type);
+	std::vector<CreatureType> dataCrTypes;
+	const rj::Value& crData = data["creatures"];
+	dataCrTypes.reserve(crData.Size());
+	for (rj::Value::ConstValueIterator it = crData.Begin(); it != crData.End(); ++it) {
+		const CreatureType cType = getCreatureType((*it)["name"].GetString());
+		assert(cType != CreatureType::NONE);
+		dataCrTypes.push_back(cType);
 	}
+	// convert to set for fast set operations
+	CreatureTypeSet roomCreatures{dataCrTypes.cbegin(), dataCrTypes.cend()};
 	// find creatures to unload
 	for (auto it = loaded.cbegin(); it != loaded.cend();) {
 		if (roomCreatures.count(it->first) == 0) {
@@ -134,14 +133,20 @@ void CreatureManager::loadRoom(std::shared_ptr<RoomData> rd) {
 		}
 	}
 	// spawn creatures
-	for (const auto& cd : rd->creatures)
-		spawn(cd.type, cd.x, cd.y);
+	std::size_t i = 0;
+	int x;
+	int y;
+	for (rj::Value::ConstValueIterator it = crData.Begin(); it != crData.End(); ++it, ++i) {
+		x = (*it)["x"].GetInt();
+		y = (*it)["y"].GetInt();
+		spawn(dataCrTypes[i], x, y);
+	}
 }
 
 
 // Note: DOES update member loaded
 void CreatureManager::loadCreature(const CreatureType ct) {
-	assert(loaded.count(ct) == 0);
+	assert(loaded.count(ct) == 0);	// should not already be loaded
 	auto& list = loaded[ct];	// insert and get default object
 	// find name associated with CreatureType
 	auto it = lookupMap.cbegin();
@@ -150,8 +155,9 @@ void CreatureManager::loadCreature(const CreatureType ct) {
 			break;
 	}
 	assert(it != lookupMap.cend());
-	// load resources
-	std::shared_ptr<CreatureData> data = GameData::instance().resources->getCreatureData(it->first);
+	// load
+	std::shared_ptr<rapidjson::Document> data = GameData::instance().resources->getCreatureData(it->first);
+	//! TODO process attr
 	loadAnimations(*data, list);
 }
 
@@ -173,12 +179,17 @@ void CreatureManager::unloadCreature(const CreatureType ct) {
 }
 
 
-void CreatureManager::loadAnimations(const CreatureData& data, ResourceList& list) {
-	if (data.animations.empty())
+void CreatureManager::loadAnimations(rapidjson::Document& data, ResourceList& list) {
+	namespace rj = rapidjson;
+	if (!data.HasMember("animations"))
 		return;
-	for (auto it = data.animations.cbegin(); it != data.animations.cend(); ++it) {
+	CreatureResources crRes;
+	crRes.type = CResourceType::ANIMATION;
+	const rj::Value& animations = data["animations"];
+	for (rj::Value::ConstValueIterator it = animations.Begin(); it != animations.End(); ++it) {
 		GameData::instance().resources->loadAnimation(*it);
-		list.push_back({it->at("name"), CResourceType::ANIMATION});
+		crRes.name = (*it)["name"].GetString();
+		list.push_back(crRes);
 	}
 }
 

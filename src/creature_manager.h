@@ -1,6 +1,7 @@
 #pragma once
 
 #include "creature_type.h"
+#include "json_reader.h"
 #include "sdl_header.h"
 #include "utility.h"
 #include <list>
@@ -14,11 +15,9 @@
 class Canvas;
 class Circle;
 class Creature;
-class CreatureData;
 class KillableGameEntity;
 class Player;
 class Room;
-class RoomData;
 class Sprite;
 
 
@@ -46,11 +45,11 @@ public:
 	std::vector<Creature*> getRect(const SDL_Rect&) const;	// get creatures contained in the rect
 	bool intersectsPlayer(const SDL_Rect&) const;
 	bool intersectsPlayer(const Circle&) const;
-	void loadRoom(std::shared_ptr<RoomData>);
+	void setRoom(rapidjson::Document&);
 private:
 	void loadCreature(const CreatureType);
 	void unloadCreature(const CreatureType);
-	void loadAnimations(const CreatureData&, ResourceList&);
+	void loadAnimations(rapidjson::Document&, ResourceList&);
 	CreatureType getCreatureType(const std::string&);
 	void notifyEmpty(void) const;
 	static Creature* newCreature(const CreatureType);

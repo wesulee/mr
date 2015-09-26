@@ -13,9 +13,6 @@
 #include <memory>
 
 
-class RoomData;
-
-
 MainGame::MainGame(std::shared_ptr<StateContext> sc) : GameState(StateType::GAME, sc), cm(&player, &room) {
 	using std::placeholders::_1;
 	playerDirKeys[0] = SDLK_w;
@@ -50,9 +47,9 @@ MainGame::MainGame(std::shared_ptr<StateContext> sc) : GameState(StateType::GAME
 		setRunningFunc();
 		map.setCur(0, 0);
 		map.refresh();
-		std::shared_ptr<RoomData> roomData = GameData::instance().resources->getRoomData(0, 0);
+		auto roomData = GameData::instance().resources->getRoomData(0, 0);
 		room.set(*roomData);
-		cm.loadRoom(roomData);
+		cm.setRoom(*roomData);
 	}
 	else {
 		setClearedFunc();

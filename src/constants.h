@@ -103,7 +103,6 @@ namespace Constants {
 // JSONReader
 #define DEBUG_JSON_PREPEND "JSON "
 #define DEBUG_JSON_READ 1
-#define DEBUG_JSON_PROC 1
 // ResourceManager
 #define DEBUG_RM_PREPEND "ResMan "
 #define DEBUG_RM_IMG_PREPEND "imgRef "
