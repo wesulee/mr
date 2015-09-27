@@ -312,7 +312,7 @@ SDL_Surface* Room::renderBg(const rapidjson::Value& data) {
 		dstRect.h = spr.getDrawHeight();
 		dstRect.x = (*it)["x"].GetInt();
 		dstRect.y = (*it)["y"].GetInt();
-		if (spr.blit(surf, &dstRect)) {
+		if (!spr.blit(surf, &dstRect)) {
 			// error drawing sprite, log error and continue
 			SDL::logError("Room::renderBg blit");
 		}
