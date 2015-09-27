@@ -2,6 +2,7 @@
 #include "constants.h"
 #include "exception.h"
 #include "game_data.h"
+#include "json_validator.h"
 #include "logger.h"
 #include <rapidjson/error/en.h>
 #include <rapidjson/filereadstream.h>
@@ -18,6 +19,88 @@ static std::string getRelPathToDataDir(const std::string& filePath) {
 	if (i != 0)
 		return (std::string{'\"'} + filePath + '\"');
 	return (std::string{'\"'} + filePath.substr(GameData::instance().dataPath.size()) + '\"');
+}
+
+
+static void validateRoomConn(JSONValidator& val, const std::string& dir) {
+	val.enter(dir);
+	val.checkArray();
+	val.checkSizeMult(2);
+	val.leave();
+}
+
+
+static void doValidateRoom(const rapidjson::Document& data, const std::string& filePath) {
+	BadData error{"invalid room data"};
+	error.setFilePath(filePath);
+	JSONValidator val{&data, error};
+
+	val.checkObject();
+
+	val.enter("background");
+	val.checkArray();
+	std::size_t arraySz = val.getSize();
+	for (std::size_t i = 0; i < arraySz; ++i) {
+		val.enter(i);
+
+		val.enter("name");
+		val.checkString();
+		val.leave();
+		val.enter("x");
+		val.checkInt();
+		val.leave();
+		val.enter("y");
+		val.checkInt();
+		val.leave();
+
+		val.leave();	// i
+	}
+	val.leave();	// background
+
+	val.enter("block");
+	val.checkArray();
+	arraySz = val.getSize();
+	for (std::size_t i = 0; i < arraySz; ++i) {
+		val.enter(i);
+
+		val.checkArray();
+		val.checkSize(4);
+		for (std::size_t j = 0; j < 4; ++j) {
+			val.enter(j);
+			val.checkIntGE(0);
+			val.leave();
+		}
+
+		val.leave();	// i
+	}
+	val.leave();	// block
+
+	val.enter("creatures");
+	val.checkArray();
+	arraySz = val.getSize();
+	for (std::size_t i = 0; i < arraySz; ++i) {
+		val.enter(i);
+
+		val.enter("name");
+		val.checkString();
+		val.leave();
+		val.enter("x");
+		val.checkInt();
+		val.leave();
+		val.enter("y");
+		val.checkInt();
+		val.leave();
+
+		val.leave();	// i
+	}
+	val.leave();	// creatures
+
+	val.enter("conn");
+	validateRoomConn(val, "n");
+	validateRoomConn(val, "e");
+	validateRoomConn(val, "s");
+	validateRoomConn(val, "w");
+	val.leave();	// conn
 }
 
 } // namespace JSONHelper
@@ -62,6 +145,16 @@ std::shared_ptr<rapidjson::Document> read2(const std::string& filePath) {
 		throw error;
 	}
 	return doc;
+}
+
+
+void validateRoom(const rapidjson::Document& data, const std::string& filePath) {
+	try {
+		JSONHelper::doValidateRoom(data, filePath);
+	}
+	catch (Exception const& e) {
+		Logger::instance().exit(e);
+	}
 }
 
 } // namespace JSONReader

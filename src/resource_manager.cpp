@@ -342,6 +342,9 @@ std::shared_ptr<rapidjson::Document> ResourceManager::getRoomData(const int x, c
 	std::shared_ptr<rapidjson::Document> data = JSONReader::read(filePath);
 	if (!data)
 		Logger::instance().exit(RuntimeError{"unable to load room", roomToString(x, y)});
+#if defined(DEBUG_JSON_VALIDATE) && DEBUG_JSON_VALIDATE
+	JSONReader::validateRoom(*data, filePath);
+#endif
 	return data;
 }
 
