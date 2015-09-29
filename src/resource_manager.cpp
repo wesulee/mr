@@ -480,6 +480,9 @@ SpriteSheet* ResourceManager::loadSpriteSheet(const std::string& name, const boo
 	std::shared_ptr<rapidjson::Document> data = JSONReader::read(filePath);
 	if (!data)
 		Logger::instance().exit(RuntimeError{"unable to load spritesheet " + q(name)});
+#if defined(DEBUG_JSON_VALIDATE) && DEBUG_JSON_VALIDATE
+	JSONReader::validateSpriteSheet(*data, filePath);
+#endif
 	SpriteSheet* ss = new SpriteSheet;
 	ss->imgName = (*data)["img"].GetString();
 	{	// process sprites

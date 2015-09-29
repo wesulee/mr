@@ -32,4 +32,5 @@ namespace JSONReader {
 	std::shared_ptr<rapidjson::Document> read2(const std::string&);	// throws Exception on error
 	// Logs exception and exits on failure
 	void validateRoom(const rapidjson::Document&, const std::string&);
+	void validateSpriteSheet(const rapidjson::Document&, const std::string&);
 }

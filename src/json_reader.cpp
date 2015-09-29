@@ -103,6 +103,41 @@ static void doValidateRoom(const rapidjson::Document& data, const std::string& f
 	val.leave();	// conn
 }
 
+
+static void doValidateSpriteSheet(const rapidjson::Document& data, const std::string& filePath) {
+	BadData error{"invalid spritesheet data"};
+	error.setFilePath(filePath);
+	JSONValidator val{&data, error};
+
+	val.checkObject();
+
+	val.enter("img");
+	val.checkString();
+	val.leave();
+
+	val.enter("sprites");
+	val.checkArray();
+	std::size_t arraySz = val.getSize();
+	for (std::size_t i = 0; i < arraySz; ++i) {
+		val.enter(i);
+
+		val.checkArray();
+		val.checkSize(5);
+
+		val.enter(0);
+		val.checkString();
+		val.leave();
+		for (std::size_t j = 1; j < 5; ++j) {
+			val.enter(j);
+			val.checkIntGE(0);
+			val.leave();
+		}
+
+		val.leave();	// i
+	}
+	val.leave();	// sprites
+}
+
 } // namespace JSONHelper
 
 
@@ -151,6 +186,16 @@ std::shared_ptr<rapidjson::Document> read2(const std::string& filePath) {
 void validateRoom(const rapidjson::Document& data, const std::string& filePath) {
 	try {
 		JSONHelper::doValidateRoom(data, filePath);
+	}
+	catch (Exception const& e) {
+		Logger::instance().exit(e);
+	}
+}
+
+
+void validateSpriteSheet(const rapidjson::Document& data, const std::string& filePath) {
+	try {
+		JSONHelper::doValidateSpriteSheet(data, filePath);
 	}
 	catch (Exception const& e) {
 		Logger::instance().exit(e);
