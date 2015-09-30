@@ -42,7 +42,7 @@ bool SpellBasic::update() {
 				static_cast<int>(pos.y),
 				radius
 			},
-			15.0f * radiusf / static_cast<float>(radiusLimit)	//! upgrades not implemented
+			static_cast<int>(15.0f * radiusf / static_cast<float>(radiusLimit))	//! upgrades not implemented
 		);
 		return true;
 	}

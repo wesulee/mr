@@ -6,9 +6,9 @@
 #include <cassert>
 
 
-CreatureSpawner::CreatureSpawner(const float hp, const CreatureType tType, const CreatureType sType,
-	const int msLo, const int msHi, const int nLo, const int nHi)
-	: Creature(hp), distSpawnMS(msLo, msHi), distSpawnN(nLo, nHi), thisType(tType), spawnType(sType) {
+CreatureSpawner::CreatureSpawner(const int hp, const CreatureType tType, const CreatureType sType,
+const int msLo, const int msHi, const int nLo, const int nHi)
+: Creature(hp), distSpawnMS(msLo, msHi), distSpawnN(nLo, nHi), thisType(tType), spawnType(sType) {
 	assert((msLo >= 0) && (msHi >= msLo));
 	assert((nLo >= 1) && (nHi >= nLo));
 	setSpawnCounter();

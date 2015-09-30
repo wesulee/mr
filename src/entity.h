@@ -29,7 +29,7 @@ public:
 
 class KillableGameEntity : public GameEntity {
 public:
-	virtual float getHealth(void) const = 0;
-	virtual void damage(const float) = 0;
+	virtual int getHealth(void) const = 0;
+	virtual void damage(const int) = 0;
 	virtual bool isAlive(void) const = 0;
 };

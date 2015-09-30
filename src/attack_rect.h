@@ -7,13 +7,13 @@
 class AttackRect : public Attack {
 public:
 	AttackRect();
-	AttackRect(const SDL_Rect&, const float);
+	AttackRect(const SDL_Rect&, const int);
 	~AttackRect() = default;
 	bool update() override;
 	void draw(Canvas&) override;
 	void setRect(const SDL_Rect&);
-	void setDamage(const float);
+	void setDamage(const int);
 private:
 	SDL_Rect rect;
-	float damage;
+	int damage;
 };

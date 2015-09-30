@@ -16,7 +16,6 @@
 #define PLAYER_DIR_E (1 << 3)
 
 
-class Canvas;
 class SaveData;
 class Room;
 
@@ -51,8 +50,8 @@ public:
 	float getPosY(void) const override;
 	void updatePos(const float, const float) override;
 	void setPos(const float, const float) override;
-	float getHealth(void) const override;
-	void damage(const float) override;
+	int getHealth(void) const override;
+	void damage(const int) override;
 	bool isAlive(void) const override;
 	void setDirection(const int);
 	void setSaveData(SaveData&) const;

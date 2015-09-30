@@ -39,7 +39,7 @@ void AttackManager::add(Attack* a) {
 }
 
 
-bool AttackManager::procRect(const Attack* a, const SDL_Rect& rect, const float dmg) {
+bool AttackManager::procRect(const Attack* a, const SDL_Rect& rect, const int dmg) {
 	assert(a != nullptr);
 	switch (a->getTarget()) {
 	case AttackTarget::NONE:
@@ -59,7 +59,7 @@ bool AttackManager::procRect(const Attack* a, const SDL_Rect& rect, const float 
 }
 
 
-bool AttackManager::procCirc(const Attack* a, const Circle& circ, const float dmg) {
+bool AttackManager::procCirc(const Attack* a, const Circle& circ, const int dmg) {
 	assert(a != nullptr);
 	switch (a->getTarget()) {
 	case AttackTarget::NONE:
@@ -84,7 +84,7 @@ void AttackManager::setCreatureManager(CreatureManager* c) {
 }
 
 
-bool AttackManager::procRectCreatures(const SDL_Rect& rect, const float dmg) {
+bool AttackManager::procRectCreatures(const SDL_Rect& rect, const int dmg) {
 	auto creatures = cm->getRect(rect);
 	for (auto c : creatures)
 		c->damage(dmg);
@@ -92,7 +92,7 @@ bool AttackManager::procRectCreatures(const SDL_Rect& rect, const float dmg) {
 }
 
 
-bool AttackManager::procCircCreatures(const Circle& circ, const float dmg) {
+bool AttackManager::procCircCreatures(const Circle& circ, const int dmg) {
 	bool ret = false;
 	auto creatures = cm->getRect(Shape::bounds(circ));
 	auto it = creatures.begin();

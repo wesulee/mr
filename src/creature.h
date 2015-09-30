@@ -12,15 +12,15 @@ class CreatureManager;
 
 class Creature : public KillableGameEntity {
 public:
-	Creature(const float);
+	Creature(const int);
 	virtual ~Creature() {}
 	virtual void spawn(CreatureManager*, const int, const int) = 0;
 	float getPosX(void) const override;
 	float getPosY(void) const override;
 	void updatePos(const float, const float) override;
 	void setPos(const float, const float) override;
-	float getHealth(void) const override;
-	void damage(const float) override;
+	int getHealth(void) const override;
+	void damage(const int) override;
 	bool isAlive(void) const override;
 protected:
 	void crUpdate(void);
@@ -34,7 +34,7 @@ protected:
 
 
 inline
-Creature::Creature(const float hp) : healthBar(hp), hpCounter(Constants::CrHPBarTicks) {
+Creature::Creature(const int hp) : healthBar(hp), hpCounter(Constants::CrHPBarTicks) {
 	hpCounter.setTicks(Constants::CrHPBarTicks);	// initially not drawn
 }
 
@@ -66,13 +66,13 @@ void Creature::setPos(const float x, const float y) {
 
 
 inline
-float Creature::getHealth() const {
+int Creature::getHealth() const {
 	return healthBar.getHealth();
 }
 
 
 inline
-void Creature::damage(const float d) {
+void Creature::damage(const int d) {
 	healthBar.damage(d);
 	hpCounter.reset();
 }

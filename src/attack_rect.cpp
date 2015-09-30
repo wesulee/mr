@@ -9,7 +9,7 @@ AttackRect::AttackRect() : rect({0, 0, 0, 0}), damage(0) {
 }
 
 
-AttackRect::AttackRect(const SDL_Rect& r, const float d) : rect(r), damage(d) {
+AttackRect::AttackRect(const SDL_Rect& r, const int d) : rect(r), damage(d) {
 }
 
 
@@ -29,6 +29,6 @@ void AttackRect::setRect(const SDL_Rect& r) {
 }
 
 
-void AttackRect::setDamage(const float d) {
+void AttackRect::setDamage(const int d) {
 	damage = d;
 }

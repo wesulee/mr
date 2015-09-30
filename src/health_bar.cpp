@@ -12,7 +12,7 @@
 SDL_Rect CreatureHealthBar::bg = {0, 0, Constants::CHealthWidth, Constants::CHealthHeight};
 
 
-CreatureHealthBar::CreatureHealthBar(const float hp) : HealthBarBase(hp) {
+CreatureHealthBar::CreatureHealthBar(const int hp) : HealthBarBase(hp) {
 }
 
 
@@ -32,9 +32,9 @@ void CreatureHealthBar::draw(Canvas& can, const int x, const int y) {
 }
 
 
-void CreatureHealthBar::damage(const float d) {
+void CreatureHealthBar::damage(const int d) {
 	HealthBarBase::damage(d);
-	drawWidth = getRatio() * (Constants::CHealthWidth - Constants::CHealthPadX * 2);
+	drawWidth = static_cast<int>(getRatio() * (Constants::CHealthWidth - Constants::CHealthPadX * 2));
 }
 
 
@@ -57,13 +57,13 @@ PlayerHealthBar::PlayerHealthBar() : HealthBarBase(100) {
 	g2.add(0.5, COLOR_YELLOW);
 	g2.setBack(Color{0, 170, 0});
 	barColor = g2.generate(static_cast<int>(
-		Constants::PHealthBarWidth / Constants::PHealthGradRatio + 1
+		(Constants::PHealthBarWidth / Constants::PHealthGradRatio) + 1
 	));
 
 	barX = Constants::PHealthPosX + text->getDrawWidth() + 5;
 	barY = (
 		Constants::PHealthPosY
-		+ (Constants::windowHeight - Constants::PHealthPosY - Constants::PHealthBarHeight) / 2
+		+ ((Constants::windowHeight - Constants::PHealthPosY - Constants::PHealthBarHeight) / 2)
 	);
 
 	updateWidth();
@@ -91,7 +91,7 @@ void PlayerHealthBar::draw(Canvas& can) {
 }
 
 
-void PlayerHealthBar::damage(const float d) {
+void PlayerHealthBar::damage(const int d) {
 	HealthBarBase::damage(d);
 	updateWidth();
 }

@@ -103,12 +103,12 @@ void Player::setPos(const float x, const float y) {
 }
 
 
-float Player::getHealth() const {
+int Player::getHealth() const {
 	return healthBar.getHealth();
 }
 
 
-void Player::damage(const float d) {
+void Player::damage(const int d) {
 	healthBar.damage(d);
 }
 

@@ -19,12 +19,13 @@ public:
 	void update(void);
 	void draw(Canvas&);
 	void add(Attack*);
-	bool procRect(const Attack*, const SDL_Rect&, const float);
-	bool procCirc(const Attack*, const Circle&, const float);
+	bool procRect(const Attack*, const SDL_Rect&, const int);
+	bool procCirc(const Attack*, const Circle&, const int);
 	void setCreatureManager(CreatureManager*);
 private:
-	bool procRectCreatures(const SDL_Rect&, const float);
-	bool procCircCreatures(const Circle&, const float);
+	bool procRectCreatures(const SDL_Rect&, const int);
+	bool procCircCreatures(const Circle&, const int);
+
 	std::list<Attack*> list;
 	CreatureManager* cm = nullptr;
 };

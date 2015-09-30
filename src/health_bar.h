@@ -14,25 +14,25 @@ class Image;
 
 class HealthBarBase {
 public:
-	HealthBarBase(const float hp) : health(hp), maxHealth(hp) {}
+	HealthBarBase(const int hp) : health(hp), maxHealth(hp) {}
 	virtual ~HealthBarBase() = default;
-	float getHealth() const {return health;}
-	float getMaxHealth() const {return maxHealth;}
-	virtual void damage(const float d) {health = std::max(health - d, 0.0f);}
+	int getHealth() const {return health;}
+	int getMaxHealth() const {return maxHealth;}
+	virtual void damage(const int d) {health = std::max(health - d, 0);}
 	bool isAlive() const {return health > 0;}
-	float getRatio() const {return health / maxHealth;}
+	float getRatio() const {return (static_cast<float>(health) / maxHealth);}
 private:
-	float health;
-	float maxHealth;
+	int health;
+	int maxHealth;
 };
 
 
 class CreatureHealthBar : public HealthBarBase {
 public:
-	CreatureHealthBar(const float);
+	CreatureHealthBar(const int);
 	~CreatureHealthBar() = default;
 	void draw(Canvas&, const int, const int);
-	void damage(const float) override;
+	void damage(const int) override;
 private:
 	int drawWidth = 0;
 	static SDL_Rect bg;
@@ -44,7 +44,7 @@ public:
 	PlayerHealthBar();
 	~PlayerHealthBar();
 	void draw(Canvas&);
-	void damage(const float) override;
+	void damage(const int) override;
 private:
 	void updateWidth(void);
 
