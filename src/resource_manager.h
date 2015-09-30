@@ -73,15 +73,9 @@ class ResourceManager {
 
 	template<class T>
 	void decImgCounter(T& ic, const bool surf, const bool tex) {
-#ifndef NDEBUG
 		// make sure that it is ok to decrement
-		if (surf && (ic.countSurf == 0)) {
-			assert(false);	// not allowed
-		}
-		if (tex && (ic.countTex == 0)) {
-			assert(false);	// not allowed
-		}
-#endif
+		assert(!(surf && (ic.countSurf == 0)));
+		assert(!(tex && (ic.countTex == 0)));
 		ic.countSurf -= toCounterType(surf);
 		ic.countTex -= toCounterType(tex);
 	}
@@ -109,6 +103,7 @@ public:
 	std::shared_ptr<rapidjson::Document> getRoomData(const int, const int);
 	std::shared_ptr<rapidjson::Document> getCreatureData(const std::string&);
 	Sprite getSprite(const std::string&);
+	std::string getRelDataPath(const std::string&);
 	void printResources(std::ostream&) const;
 private:
 	ImageResource* getImage(const std::string&, const bool, const bool);

@@ -4,6 +4,8 @@
 #include "game_data.h"
 #include "json_validator.h"
 #include "logger.h"
+#include "resource_manager.h"	// getRelDataPath
+#include "utility.h"	// q
 #include <rapidjson/error/en.h>
 #include <rapidjson/filereadstream.h>
 #include <cassert>
@@ -11,16 +13,6 @@
 
 
 namespace JSONHelper {
-
-// returns path if it can't do it
-// also adds quotes
-static std::string getRelPathToDataDir(const std::string& filePath) {
-	std::size_t i = filePath.find(GameData::instance().dataPath);
-	if (i != 0)
-		return (std::string{'\"'} + filePath + '\"');
-	return (std::string{'\"'} + filePath.substr(GameData::instance().dataPath.size()) + '\"');
-}
-
 
 static void validateRoomConn(JSONValidator& val, const std::string& dir) {
 	val.enter(dir);
@@ -156,8 +148,9 @@ std::shared_ptr<rapidjson::Document> read(const std::string& filePath) {
 
 std::shared_ptr<rapidjson::Document> read2(const std::string& filePath) {
 #if defined(DEBUG_JSON_READ) && DEBUG_JSON_READ
-	DEBUG_BEGIN << DEBUG_JSON_PREPEND << "READ " << JSONHelper::getRelPathToDataDir(filePath) << std::endl;
-#endif
+	DEBUG_BEGIN << DEBUG_JSON_PREPEND << "READ "
+	            << q(GameData::instance().resources->getRelDataPath(filePath)) << std::endl;
+#endif // DEBUG_JSON_READ
 #if defined(_WIN32)
 	FILE* f = std::fopen(filePath.c_str() , "rb");
 #else

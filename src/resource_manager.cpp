@@ -364,6 +364,17 @@ Sprite ResourceManager::getSprite(const std::string& name) {
 }
 
 
+// if filePath is absolute path to item in data directory, return path relative to data dir
+// else return empty
+std::string ResourceManager::getRelDataPath(const std::string& filePath) {
+	std::string ret;
+	std::size_t i = filePath.find(GameData::instance().dataPath);
+	if (i == 0)
+		ret = filePath.substr(GameData::instance().dataPath.size());
+	return ret;
+}
+
+
 #ifndef NDEBUG
 
 // Print all information about loaded resources
