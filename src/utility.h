@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"	// float_type
 #include "sdl_header.h"
 #include <cmath>
 #include <string>
@@ -74,7 +75,7 @@ int msToTicks(const float, const int);
 
 
 // T should be a floating point type
-template<typename T>
+template<typename T = Constants::float_type>
 class Vector2D {
 public:
 	Vector2D() = default;

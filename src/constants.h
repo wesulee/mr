@@ -6,6 +6,7 @@
 
 
 namespace Constants {
+	typedef float float_type;
 	// 16:9 aspect ratio
 	constexpr int windowWidth = 576;
 	constexpr int windowHeight = 324;
