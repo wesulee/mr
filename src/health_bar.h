@@ -1,58 +1,42 @@
 #pragma once
 
-#include "color.h"
-#include "font_resource.h"
-#include "sdl_helper.h"
-#include <algorithm>
-#include <memory>
-#include <vector>
+#include <algorithm>	// max
 
 
 class Canvas;
-class Image;
+class KillableGameEntity;
 
 
-class HealthBarBase {
+class HealthBar {
 public:
-	HealthBarBase(const int hp) : health(hp), maxHealth(hp) {}
-	virtual ~HealthBarBase() = default;
-	int getHealth() const {return health;}
-	int getMaxHealth() const {return maxHealth;}
-	virtual void damage(const int d) {health = std::max(health - d, 0);}
-	bool isAlive() const {return health > 0;}
-	float getRatio() const {return (static_cast<float>(health) / maxHealth);}
-private:
+	HealthBar(const KillableGameEntity*, const int);
+	virtual ~HealthBar() {}
+	virtual void draw(Canvas&) = 0;
+	virtual void set(const int) = 0;
+	void refresh(void);		// calls set() with current health of entity
+	int getHealth(void) const;
+	int getMaxHealth(void) const;
+	float getRatio(void) const;
+protected:
+	const KillableGameEntity* entity;
 	int health;
 	int maxHealth;
 };
 
 
-class CreatureHealthBar : public HealthBarBase {
-public:
-	CreatureHealthBar(const int);
-	~CreatureHealthBar() = default;
-	void draw(Canvas&, const int, const int);
-	void damage(const int) override;
-private:
-	int drawWidth = 0;
-	static SDL_Rect bg;
-};
+inline
+int HealthBar::getHealth() const {
+	return health;
+}
 
 
-class PlayerHealthBar : public HealthBarBase {
-public:
-	PlayerHealthBar();
-	~PlayerHealthBar();
-	void draw(Canvas&);
-	void damage(const int) override;
-private:
-	void updateWidth(void);
+inline
+int HealthBar::getMaxHealth() const {
+	return maxHealth;
+}
 
-	FontResource fr;
-	std::vector<Color> barColor;
-	std::shared_ptr<Image> text;
-	std::size_t index = 0;
-	int barX;
-	int barY;
-	int drawWidth = 0;
-};
+
+inline
+float HealthBar::getRatio() const {
+	return (static_cast<float>(health) / maxHealth);
+}

@@ -51,9 +51,6 @@ void Creature1::spawn(CreatureManager* cm, const int x, const int y) {
 
 bool Creature1::update() {
 	using namespace Creature1Settings;
-	if (!isAlive())
-		return true;
-	crUpdate();
 	counter.increment();
 	switch (state) {
 	case CreatureState::NONE:
@@ -84,13 +81,6 @@ void Creature1::draw(Canvas& can) {
 		can.setColorState(oldColor);
 	}
 #endif // NDEBUG
-	if (shouldDrawHPBar()) {
-		healthBar.draw(
-			can,		// all sprites same size, so pick arbitrarily
-			static_cast<int>(pos.x) + sprMovL.getDrawWidth() / 2,
-			static_cast<int>(pos.y) + sprMovL.getDrawHeight()
-		);
-	}
 }
 
 

@@ -3,8 +3,7 @@
 #include "creature_manager.h"
 
 
-Creature1Sp::Creature1Sp(): CreatureSpawner(100, CreatureType::SP1,
-	CreatureType::T1, 10 * 1000, 30 * 1000, 3, 5) {
+Creature1Sp::Creature1Sp(): CreatureSpawner(100, CreatureType::SP1, CreatureType::T1, 10 * 1000, 30 * 1000, 3, 5) {
 }
 
 
@@ -17,7 +16,6 @@ void Creature1Sp::spawn(CreatureManager* man, const int x, const int y) {
 
 
 bool Creature1Sp::update() {
-	if (!isAlive()) return true;
 	updateTick();
 	return false;
 }
@@ -25,12 +23,6 @@ bool Creature1Sp::update() {
 
 void Creature1Sp::draw(Canvas& can) {
 	can.draw(sp, static_cast<int>(pos.x), static_cast<int>(pos.y));
-	if (shouldDrawHPBar()) {
-		healthBar.draw(
-			can, static_cast<int>(pos.x) + sp.getDrawWidth() / 2,
-			static_cast<int>(pos.y) + sp.getDrawHeight()
-		);
-	}
 }
 
 

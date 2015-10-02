@@ -8,8 +8,7 @@
 
 class CreatureSpawner : public Creature {
 public:
-	CreatureSpawner(const int, const CreatureType, const CreatureType, const int,
-		const int, const int, const int);
+	CreatureSpawner(const int, const CreatureType, const CreatureType, const int, const int, const int, const int);
 	virtual ~CreatureSpawner() {}
 	virtual void spawn(CreatureManager*, const int, const int) = 0;
 protected:

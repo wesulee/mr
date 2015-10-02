@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>	// max
+
 
 class Canvas;
 class SDL_Rect;
@@ -31,5 +33,12 @@ class KillableGameEntity : public GameEntity {
 public:
 	virtual int getHealth(void) const = 0;
 	virtual void damage(const int) = 0;
-	virtual bool isAlive(void) const = 0;
+protected:
+	static int decHealth(const int, const int);
 };
+
+
+inline
+int KillableGameEntity::decHealth(const int curHealth, const int damage) {
+	return std::max(curHealth - damage, 0);
+}

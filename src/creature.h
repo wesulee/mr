@@ -1,19 +1,19 @@
 #pragma once
 
-#include "constants.h"
 #include "entity.h"
-#include "health_bar.h"
 #include "utility.h"
 
 
-class Canvas;
 class CreatureManager;
+class HealthBar;
 
 
+// Derived Creature may construct their own health bar during ctor if they don't want default one.
+//   Should not interact with healthBar otherwise.
 class Creature : public KillableGameEntity {
 public:
 	Creature(const int);
-	virtual ~Creature() {}
+	virtual ~Creature();
 	virtual void spawn(CreatureManager*, const int, const int) = 0;
 	float getPosX(void) const override;
 	float getPosY(void) const override;
@@ -21,21 +21,24 @@ public:
 	void setPos(const float, const float) override;
 	int getHealth(void) const override;
 	void damage(const int) override;
-	bool isAlive(void) const override;
+	HealthBar*& getHealthBar(void);
 protected:
-	void crUpdate(void);
-	bool shouldDrawHPBar(void) const;
-
-	CreatureHealthBar healthBar;
 	Vector2D<float> pos;
 	Vector2D<float> dpos;
-	Counter hpCounter;
+	HealthBar* healthBar = nullptr;
+	int health;
 };
 
 
 inline
-Creature::Creature(const int hp) : healthBar(hp), hpCounter(Constants::CrHPBarTicks) {
-	hpCounter.setTicks(Constants::CrHPBarTicks);	// initially not drawn
+Creature::Creature(const int hp) : health(hp) {
+}
+
+
+inline
+Creature::~Creature() {
+	// Do nothing.
+	// healthBar must be deleted by CreatureManager
 }
 
 
@@ -67,30 +70,17 @@ void Creature::setPos(const float x, const float y) {
 
 inline
 int Creature::getHealth() const {
-	return healthBar.getHealth();
+	return health;
 }
 
 
 inline
 void Creature::damage(const int d) {
-	healthBar.damage(d);
-	hpCounter.reset();
+	health = decHealth(health, d);
 }
 
 
 inline
-bool Creature::isAlive() const {
-	return healthBar.isAlive();
-}
-
-
-inline
-void Creature::crUpdate() {
-	hpCounter.increment();
-}
-
-
-inline
-bool Creature::shouldDrawHPBar() const {
-	return !hpCounter.finished();
+HealthBar*& Creature::getHealthBar() {
+	return healthBar;
 }

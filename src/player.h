@@ -1,7 +1,7 @@
 #pragma once
 
 #include "entity.h"
-#include "health_bar.h"
+#include "health_bar_player.h"
 #include "multistate_sprite.h"
 #include "sdl_header.h"
 #include "utility.h"
@@ -52,19 +52,20 @@ public:
 	void setPos(const float, const float) override;
 	int getHealth(void) const override;
 	void damage(const int) override;
-	bool isAlive(void) const override;
 	void setDirection(const int);
 	void setSaveData(SaveData&) const;
 	void getSaveData(const SaveData&);
 private:
 	void move(const float, const float);
+
 	Vector2D<float> pos;
-	bool moving = false;
 	MultistateSprite ms;
 	PlayerDirection direction = PlayerDirection::NONE;
 	float speed;
 	Room* room = nullptr;
+	int health;
 	PlayerHealthBar healthBar;
+	bool moving = false;
 	static constexpr std::size_t SPR_STATE_LEFT = 0;
 	static constexpr std::size_t SPR_STATE_RIGHT = 1;
 };

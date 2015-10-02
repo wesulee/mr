@@ -1,13 +1,14 @@
 #include "creature_manager.h"
 #include "canvas.h"
 #include "creature.h"
+#include "exception.h"
 #include "game_data.h"
+#include "health_bar_entity.h"
 #include "logger.h"
 #include "parameters.h"
 #include "player.h"
 #include "resource_manager.h"
 #include "room.h"
-#include "sdl_header.h"
 #include "shapes.h"
 #ifndef NDEBUG
 #include "constants.h"
@@ -26,7 +27,7 @@ CreatureManager::CreatureManager(Player* p, Room* r) : player(p), room(r) {
 
 CreatureManager::~CreatureManager() {
 	for (auto c : creatures)
-		delete c;
+		del(c);
 }
 
 
@@ -34,8 +35,8 @@ void CreatureManager::update() {
 	if (creatures.empty())
 		notifyEmpty();
 	for (auto it = creatures.begin(); it != creatures.end();) {
-		if (!(**it).isAlive() || (**it).update()) {
-			delete *it;
+		if (((**it).getHealth() <= 0) || (**it).update()) {
+			del(*it);
 			it = creatures.erase(it);
 		}
 		else {
@@ -48,6 +49,7 @@ void CreatureManager::update() {
 void CreatureManager::draw(Canvas& can) {
 	for (auto c : creatures) {
 		c->draw(can);
+		c->getHealthBar()->draw(can);
 #if defined(DEBUG_CREATURE_BOUNDS) && DEBUG_CREATURE_BOUNDS
 		// draw overlay over each creature
 		auto rect = c->getBounds();
@@ -72,9 +74,6 @@ KillableGameEntity* CreatureManager::getTarget() {
 
 bool CreatureManager::spawn(const CreatureType ct, const int x, const int y) {
 	Creature* c = newCreature(ct);
-	if (c == nullptr) {
-		return false;
-	}
 	c->spawn(this, x, y);
 	//! TODO make sure creature has spawned in valid location (not inside room block)
 	creatures.push_back(c);
@@ -215,18 +214,34 @@ void CreatureManager::notifyEmpty() const {
 }
 
 
+void CreatureManager::del(Creature* c) {
+	assert(c != nullptr);
+	assert(c->getHealthBar() != nullptr);
+	delete c->getHealthBar();
+	delete c;
+}
+
+
 Creature* CreatureManager::newCreature(const CreatureType ct) {
 	assert(ct != CreatureType::NONE);
-	Creature* c = nullptr;
+	Creature* c;
 	switch (ct) {
-	case CreatureType::NONE:
-		break;
 	case CreatureType::T1:
 		c = new Creature1;
 		break;
 	case CreatureType::SP1:
 		c = new Creature1Sp;
 		break;
+	default:
+		assert(false);
+		c = nullptr;
+	}
+	if (c == nullptr) {
+		Logger::instance().exit(RuntimeError{"CreatureManager::newCreature", "unexpected nullptr"});
+	}
+	else {
+		if (c->getHealthBar() == nullptr)
+			c->getHealthBar() = new EntityHealthBar(c, c->getHealth());
 	}
 	return c;
 }

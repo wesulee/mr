@@ -3,7 +3,7 @@
 #include "creature_type.h"
 #include "json_reader.h"
 #include "sdl_header.h"
-#include "utility.h"
+#include "utility.h"	// EnumClassHash
 #include <list>
 #include <memory>
 #include <string>
@@ -24,11 +24,14 @@ class Sprite;
 class CreatureManager {
 	CreatureManager(const CreatureManager&) = delete;
 	void operator=(const CreatureManager&) = delete;
+
 	enum class CResourceType {ANIMATION, SPRITESHEET};
+
 	struct CreatureResources {
 		std::string name;
 		CResourceType type;
 	};
+
 	typedef std::vector<CreatureResources> ResourceList;
 	typedef std::unordered_set<CreatureType, EnumClassHash> CreatureTypeSet;
 	typedef std::unordered_map<CreatureType, ResourceList, EnumClassHash> CreatureResourceMap;
@@ -52,6 +55,7 @@ private:
 	void loadAnimations(rapidjson::Document&, ResourceList&);
 	CreatureType getCreatureType(const std::string&);
 	void notifyEmpty(void) const;
+	void del(Creature*);
 	static Creature* newCreature(const CreatureType);
 
 	std::unordered_map<std::string, CreatureType> lookupMap;

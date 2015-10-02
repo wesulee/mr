@@ -20,13 +20,6 @@ namespace Constants {
 	constexpr std::size_t maxIndex = std::numeric_limits<std::size_t>::max();
 	// Console
 	constexpr bool ConsoleMilliseconds = true;
-	// CreatureBasic
-	constexpr unsigned int CrHPBarTicks = targetFPS * 5;	// ticks after damaged bar drawn
-	// CreatureHealthBar
-	constexpr int CHealthWidth = 22;
-	constexpr int CHealthHeight = 5;
-	constexpr int CHealthPadX = 1;
-	constexpr int CHealthPadY = 1;
 	// JSONReader
 	constexpr std::size_t JSONBufferSz = (8 * 1024);
 	// Map
@@ -34,6 +27,7 @@ namespace Constants {
 	constexpr int MapCountY = 6;
 	constexpr int MapBlockSz = 8;
 	// Player
+	constexpr int PHealth = 100;
 	constexpr float PBaseMovSpeed = 100.0f;		// base movement speed per axis (pps)
 	// PlayerHealthBar
 	constexpr float PHealthGradRatio = 3.0f;	// gradient accuracy, lower is better
@@ -71,6 +65,7 @@ namespace Constants {
 		#define _WIN32
 	#endif
 #endif
+
 
 
 #ifndef NDEBUG

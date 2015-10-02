@@ -16,7 +16,6 @@ const int msLo, const int msHi, const int nLo, const int nHi)
 
 
 void CreatureSpawner::updateTick() {
-	crUpdate();
 	counter.increment();
 	if (counter.finished()) {
 		counter.reset();

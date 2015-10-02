@@ -8,6 +8,17 @@
 #include <cassert>
 
 
+static void damage(Creature& c, const int dmg) {
+	c.damage(dmg);
+	c.getHealthBar()->set(c.getHealth());
+}
+
+
+static void damage(Player& p, const int dmg) {
+	p.damage(dmg);
+}
+
+
 AttackManager::~AttackManager() {
 	for (auto p : list)
 		delete p;
@@ -46,7 +57,7 @@ bool AttackManager::procRect(const Attack* a, const SDL_Rect& rect, const int dm
 		return false;
 	case AttackTarget::PLAYER:
 		if (cm->intersectsPlayer(rect)) {
-			cm->getPlayer()->damage(dmg);
+			damage(*cm->getPlayer(), dmg);
 			return true;
 		}
 		else {
@@ -66,7 +77,7 @@ bool AttackManager::procCirc(const Attack* a, const Circle& circ, const int dmg)
 		return false;
 	case AttackTarget::PLAYER:
 		if (cm->intersectsPlayer(circ)) {
-			cm->getPlayer()->damage(dmg);
+			damage(*cm->getPlayer(), dmg);
 			return true;
 		}
 		else {
@@ -87,7 +98,7 @@ void AttackManager::setCreatureManager(CreatureManager* c) {
 bool AttackManager::procRectCreatures(const SDL_Rect& rect, const int dmg) {
 	auto creatures = cm->getRect(rect);
 	for (auto c : creatures)
-		c->damage(dmg);
+		damage(*c, dmg);
 	return !creatures.empty();
 }
 
@@ -98,14 +109,14 @@ bool AttackManager::procCircCreatures(const Circle& circ, const int dmg) {
 	auto it = creatures.begin();
 	while (it != creatures.end() && !ret) {
 		if (Shape::intersects((**it).getBounds(), circ)) {
-			(**it).damage(dmg);
+			damage(**it, dmg);
 			ret = true;
 		}
 		++it;
 	}
 	while (it != creatures.end()) {
 		if (Shape::intersects((**it).getBounds(), circ)) {
-			(**it).damage(dmg);
+			damage(**it, dmg);
 		}
 		++it;
 	}

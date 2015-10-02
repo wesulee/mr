@@ -10,7 +10,9 @@
 
 
 // in order to draw Player, must add Sprites through MultistateSprite::addState()
-Player::Player() : pos(200, 200), speed(Constants::PBaseMovSpeed * Constants::frameDurationFloat / 1000) {
+Player::Player()
+: pos(200, 200), speed(Constants::PBaseMovSpeed * Constants::frameDurationFloat / 1000)
+, health(Constants::PHealth), healthBar(this, Constants::PHealth) {
 	ms.addState(GameData::instance().resources->getSprite("player_l"));
 	ms.addState(GameData::instance().resources->getSprite("player_r"));
 }
@@ -22,7 +24,6 @@ Player::~Player() {
 
 
 bool Player::update() {
-	if (!isAlive()) return true;
 	if (moving) {
 		switch (direction) {
 		case PlayerDirection::NONE:
@@ -104,17 +105,13 @@ void Player::setPos(const float x, const float y) {
 
 
 int Player::getHealth() const {
-	return healthBar.getHealth();
+	return health;
 }
 
 
 void Player::damage(const int d) {
-	healthBar.damage(d);
-}
-
-
-bool Player::isAlive() const {
-	return healthBar.isAlive();
+	health = decHealth(health, d);
+	healthBar.set(health);
 }
 
 
