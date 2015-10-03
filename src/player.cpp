@@ -11,8 +11,10 @@
 
 // in order to draw Player, must add Sprites through MultistateSprite::addState()
 Player::Player()
-: pos(200, 200), speed(Constants::PBaseMovSpeed * Constants::frameDurationFloat / 1000)
+: speed(Constants::PBaseMovSpeed * Constants::frameDurationFloat / 1000)
 , health(Constants::PHealth), healthBar(this, Constants::PHealth) {
+	entityPos.x = 200;	// default values
+	entityPos.y = 200;
 	ms.addState(GameData::instance().resources->getSprite("player_l"));
 	ms.addState(GameData::instance().resources->getSprite("player_r"));
 }
@@ -68,7 +70,7 @@ bool Player::update() {
 
 void Player::draw(Canvas& can) {
 	healthBar.draw(can);
-	can.draw(ms, static_cast<int>(pos.x), static_cast<int>(pos.y));
+	can.draw(ms, static_cast<int>(entityPos.x), static_cast<int>(entityPos.y));
 }
 
 
@@ -78,29 +80,19 @@ void Player::setRoom(Room* r) {
 
 
 SDL_Rect Player::getBounds() const {
-	return {static_cast<int>(pos.x), static_cast<int>(pos.y), ms.getDrawWidth(), ms.getDrawHeight()};
-}
-
-
-float Player::getPosX() const {
-	return pos.x;
-}
-
-
-float Player::getPosY() const {
-	return pos.y;
+	return {static_cast<int>(entityPos.x), static_cast<int>(entityPos.y), ms.getDrawWidth(), ms.getDrawHeight()};
 }
 
 
 void Player::updatePos(const float dx, const float dy) {
-	pos.x += dx;
-	pos.y += dy;
+	entityPos.x += dx;
+	entityPos.y += dy;
 }
 
 
 void Player::setPos(const float x, const float y) {
-	pos.x = x;
-	pos.y = y;
+	entityPos.x = x;
+	entityPos.y = y;
 }
 
 
@@ -167,22 +159,22 @@ void Player::setDirection(const int dir) {
 
 
 void Player::setSaveData(SaveData& data) const {
-	data.posX = pos.x;
-	data.posY = pos.y;
+	data.posX = entityPos.x;
+	data.posY = entityPos.y;
 }
 
 
 void Player::getSaveData(const SaveData& data) {
-	pos.x = data.posX;
-	pos.y = data.posY;
+	entityPos.x = data.posX;
+	entityPos.y = data.posY;
 }
 
 
 void Player::move(const float dx, const float dy) {
 	int newXInt;
 	int newYInt;
-	float newX = pos.x + dx;
-	float newY = pos.y + dy;
+	float newX = entityPos.x + dx;
+	float newY = entityPos.y + dy;
 	if (dx >= 0) {
 		newXInt = static_cast<int>(std::ceil(newX));
 	}
@@ -196,8 +188,8 @@ void Player::move(const float dx, const float dy) {
 		newYInt = static_cast<int>(newY);
 	}
 	if (room->space(newXInt, newYInt, ms.getDrawWidth(), ms.getDrawHeight())) {
-		pos.x = newX;
-		pos.y = newY;
+		entityPos.x = newX;
+		entityPos.y = newY;
 	}
 	else {
 		room->updateEntity(*this, newXInt, newYInt);

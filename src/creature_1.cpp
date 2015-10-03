@@ -41,8 +41,8 @@ Creature1::~Creature1() {
 void Creature1::spawn(CreatureManager* cm, const int x, const int y) {
 	room = cm->getRoom();
 	target = cm->getTarget();
-	pos.x = x;
-	pos.y = y;
+	entityPos.x = x;
+	entityPos.y = y;
 
 	state = CreatureState::MOVING;
 	updateTargetPos();
@@ -72,7 +72,7 @@ bool Creature1::update() {
 
 
 void Creature1::draw(Canvas& can) {
-	can.draw(*curSpr, static_cast<int>(pos.x), static_cast<int>(pos.y));
+	can.draw(*curSpr, static_cast<int>(entityPos.x), static_cast<int>(entityPos.y));
 #ifndef NDEBUG
 	if (state == CreatureState::ATTACKING) {
 		auto oldColor = can.getColorState();
@@ -85,7 +85,7 @@ void Creature1::draw(Canvas& can) {
 
 
 SDL_Rect Creature1::getBounds() const {
-	return {static_cast<int>(pos.x), static_cast<int>(pos.y), sprMovL.getDrawWidth(), sprMovL.getDrawHeight()};
+	return {static_cast<int>(entityPos.x), static_cast<int>(entityPos.y), sprMovL.getDrawWidth(), sprMovL.getDrawHeight()};
 }
 
 
@@ -94,15 +94,15 @@ bool Creature1::shouldAttack() {
 	SDL_Rect rect = target->getBounds();
 	if (facingLeft()) {
 		return (
-			square(rect.x + rect.w - pos.x)
-			+ square(rect.y - pos.y)
+			square(rect.x + rect.w - entityPos.x)
+			+ square(rect.y - entityPos.y)
 			< minDistAttack2
 		);
 	}
 	else {
 		return (
-			square(pos.x + sprMovL.getDrawWidth() - rect.x)
-			+ square(rect.y - pos.y)
+			square(entityPos.x + sprMovL.getDrawWidth() - rect.x)
+			+ square(rect.y - entityPos.y)
 			< minDistAttack2
 		);
 	}
@@ -113,7 +113,7 @@ bool Creature1::shouldAttack() {
 void Creature1::updateTargetPos() {
 	using namespace Creature1Settings;
 	SDL_Rect tRect = target->getBounds();
-	const float selfCenterX = pos.x + sprMovL.getDrawWidth() / 2.0f;
+	const float selfCenterX = entityPos.x + sprMovL.getDrawWidth() / 2.0f;
 	const float targetCenterX = tRect.x + tRect.w / 2.0f;
 	float targetX;
 	if (selfCenterX <= targetCenterX) {
@@ -126,8 +126,8 @@ void Creature1::updateTargetPos() {
 		targetX = tRect.x + tRect.w;
 	}
 	// update direction vector
-	dpos.x = targetX - pos.x;
-	dpos.y = tRect.y - pos.y;
+	dpos.x = targetX - entityPos.x;
+	dpos.y = tRect.y - entityPos.y;
 	dpos.normalize();
 	dpos *= (speed / 1000 * Constants::frameDurationFloat);
 }
@@ -137,8 +137,8 @@ void Creature1::updatePosition() {
 	curSpr->update();
 	int newXInt;
 	int newYInt;
-	float newX = pos.x + dpos.x;
-	float newY = pos.y + dpos.y;
+	float newX = entityPos.x + dpos.x;
+	float newY = entityPos.y + dpos.y;
 	if (dpos.x >= 0) {
 		newXInt = static_cast<int>(std::ceil(newX));
 	}
@@ -152,8 +152,8 @@ void Creature1::updatePosition() {
 		newYInt = static_cast<int>(newY);
 	}
 	if (room->space(newXInt, newYInt, sprMovL.getDrawWidth(), sprMovL.getDrawHeight())) {
-		pos.x = newX;
-		pos.y = newY;
+		entityPos.x = newX;
+		entityPos.y = newY;
 	}
 	else {
 		room->updateEntity(*this, newXInt, newYInt);
@@ -174,12 +174,12 @@ void Creature1::movingUpdate() {
 		state = CreatureState::ATTACKING;
 		// set attack rectangle
 		if (facingLeft()) {
-			attackRect.x = static_cast<int>(pos.x) - attackRect.w;
-			attackRect.y = static_cast<int>(pos.y);
+			attackRect.x = static_cast<int>(entityPos.x) - attackRect.w;
+			attackRect.y = static_cast<int>(entityPos.y);
 		}
 		else {
-			attackRect.x = static_cast<int>(pos.x) + sprMovL.getDrawWidth();
-			attackRect.y = static_cast<int>(pos.y);
+			attackRect.x = static_cast<int>(entityPos.x) + sprMovL.getDrawWidth();
+			attackRect.y = static_cast<int>(entityPos.y);
 		}
 
 		AttackRect* ar = new AttackRect;

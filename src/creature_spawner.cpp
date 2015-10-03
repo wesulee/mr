@@ -25,8 +25,8 @@ void CreatureSpawner::updateTick() {
 			//! TODO: check result, randomize position
 			cm->spawn(
 				spawnType,
-				static_cast<int>(pos.x),
-				static_cast<int>(pos.y)
+				static_cast<int>(entityPos.x),
+				static_cast<int>(entityPos.y)
 			);
 		}
 	}

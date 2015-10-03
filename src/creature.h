@@ -15,15 +15,12 @@ public:
 	Creature(const int);
 	virtual ~Creature();
 	virtual void spawn(CreatureManager*, const int, const int) = 0;
-	float getPosX(void) const override;
-	float getPosY(void) const override;
 	void updatePos(const float, const float) override;
 	void setPos(const float, const float) override;
 	int getHealth(void) const override;
 	void damage(const int) override;
 	HealthBar*& getHealthBar(void);
 protected:
-	Vector2D<float> pos;
 	Vector2D<float> dpos;
 	HealthBar* healthBar = nullptr;
 	int health;
@@ -43,28 +40,16 @@ Creature::~Creature() {
 
 
 inline
-float Creature::getPosX() const {
-	return pos.x;
-}
-
-
-inline
-float Creature::getPosY() const {
-	return pos.y;
-}
-
-
-inline
 void Creature::updatePos(const float x, const float y) {
-	pos.x += x;
-	pos.y += y;
+	entityPos.x += x;
+	entityPos.y += y;
 }
 
 
 inline
 void Creature::setPos(const float x, const float y) {
-	pos.x = x;
-	pos.y = y;
+	entityPos.x = x;
+	entityPos.y = y;
 }
 
 

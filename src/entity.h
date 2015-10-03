@@ -1,5 +1,6 @@
 #pragma once
 
+#include "utility.h"	// Vector2D
 #include <algorithm>	// max
 
 
@@ -22,10 +23,11 @@ public:
 	GameEntity() {}
 	virtual ~GameEntity() {}
 	virtual SDL_Rect getBounds(void) const = 0;
-	virtual float getPosX(void) const = 0;
-	virtual float getPosY(void) const = 0;
+	Vector2D<> getPos(void) const;
 	virtual void updatePos(const float, const float) = 0;
 	virtual void setPos(const float, const float) = 0;
+protected:
+	Vector2D<> entityPos;
 };
 
 
@@ -41,4 +43,10 @@ protected:
 inline
 int KillableGameEntity::decHealth(const int curHealth, const int damage) {
 	return std::max(curHealth - damage, 0);
+}
+
+
+inline
+Vector2D<> GameEntity::getPos() const {
+	return entityPos;
 }

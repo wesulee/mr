@@ -9,8 +9,8 @@ Creature1Sp::Creature1Sp(): CreatureSpawner(100, CreatureType::SP1, CreatureType
 
 void Creature1Sp::spawn(CreatureManager* man, const int x, const int y) {
 	cm = man;
-	pos.x = x;
-	pos.y = y;
+	entityPos.x = x;
+	entityPos.y = y;
 	sp = cm->getSprite("cr1sp");
 }
 
@@ -22,10 +22,10 @@ bool Creature1Sp::update() {
 
 
 void Creature1Sp::draw(Canvas& can) {
-	can.draw(sp, static_cast<int>(pos.x), static_cast<int>(pos.y));
+	can.draw(sp, static_cast<int>(entityPos.x), static_cast<int>(entityPos.y));
 }
 
 
 SDL_Rect Creature1Sp::getBounds() const {
-	return {static_cast<int>(pos.x), static_cast<int>(pos.y), sp.getDrawWidth(), sp.getDrawHeight()};
+	return {static_cast<int>(entityPos.x), static_cast<int>(entityPos.y), sp.getDrawWidth(), sp.getDrawHeight()};
 }

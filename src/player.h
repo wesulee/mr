@@ -46,8 +46,6 @@ public:
 	void setRoom(Room*);
 	// Entity methods
 	SDL_Rect getBounds(void) const override;
-	float getPosX(void) const override;
-	float getPosY(void) const override;
 	void updatePos(const float, const float) override;
 	void setPos(const float, const float) override;
 	int getHealth(void) const override;
@@ -58,11 +56,10 @@ public:
 private:
 	void move(const float, const float);
 
-	Vector2D<float> pos;
 	MultistateSprite ms;
+	Room* room = nullptr;
 	PlayerDirection direction = PlayerDirection::NONE;
 	float speed;
-	Room* room = nullptr;
 	int health;
 	PlayerHealthBar healthBar;
 	bool moving = false;
