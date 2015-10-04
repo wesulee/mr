@@ -19,8 +19,8 @@ static void displayMessage(const Uint32 flags, const char* title, const char* me
 
 void Logger::setPath(const std::string& s) {
 	path = s;
-	os = std::ofstream{path, std::ofstream::out | std::ofstream::app};
-	if (!os) {
+	os.open(path, std::ofstream::out | std::ofstream::app);
+	if (!os.is_open()) {
 		std::cerr << "Unable to open log file " << q(path) << std::endl;
 		//! ...
 	}

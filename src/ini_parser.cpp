@@ -27,13 +27,14 @@ static void checkSection(const std::string& str, ParserError& error) {
 
 
 IniParser::ValueMap IniParser::readFile(const std::string& filePath) {
+	ValueMap map;
 	try {
-		return read(filePath);
+		map = read(filePath);
 	}
 	catch (Exception const& e) {
 		Logger::instance().exit(e);
 	}
-	return {};	// remove warning
+	return map;
 }
 
 
