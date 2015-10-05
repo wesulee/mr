@@ -11,8 +11,8 @@
 
 // in order to draw Player, must add Sprites through MultistateSprite::addState()
 Player::Player()
-: speed(Constants::PBaseMovSpeed * Constants::frameDurationFloat / 1000)
-, health(Constants::PHealth), healthBar(this, Constants::PHealth) {
+: KillableGameEntity(Constants::PHealth), healthBar(this, Constants::PHealth)
+, speed(Constants::PBaseMovSpeed * Constants::frameDurationFloat / 1000) {
 	entityPos.x = 200;	// default values
 	entityPos.y = 200;
 	ms.addState(GameData::instance().resources->getSprite("player_l"));
@@ -96,14 +96,9 @@ void Player::setPos(const float x, const float y) {
 }
 
 
-int Player::getHealth() const {
-	return health;
-}
-
-
 void Player::damage(const int d) {
-	health = decHealth(health, d);
-	healthBar.set(health);
+	decHealth(d);
+	healthBar.set(entityHealth);
 }
 
 

@@ -48,7 +48,6 @@ public:
 	SDL_Rect getBounds(void) const override;
 	void updatePos(const float, const float) override;
 	void setPos(const float, const float) override;
-	int getHealth(void) const override;
 	void damage(const int) override;
 	void setDirection(const int);
 	void setSaveData(SaveData&) const;
@@ -56,12 +55,11 @@ public:
 private:
 	void move(const float, const float);
 
+	PlayerHealthBar healthBar;
 	MultistateSprite ms;
 	Room* room = nullptr;
 	PlayerDirection direction = PlayerDirection::NONE;
 	float speed;
-	int health;
-	PlayerHealthBar healthBar;
 	bool moving = false;
 	static constexpr std::size_t SPR_STATE_LEFT = 0;
 	static constexpr std::size_t SPR_STATE_RIGHT = 1;

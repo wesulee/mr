@@ -8,7 +8,7 @@ class Canvas;
 class SDL_Rect;
 
 
-// Represents something abstract...
+// Represents something that can be seen
 class Entity {
 public:
 	Entity() {}
@@ -18,6 +18,7 @@ public:
 };
 
 
+// Represents something that has a defined position
 class GameEntity : public Entity {
 public:
 	GameEntity() {}
@@ -33,20 +34,35 @@ protected:
 
 class KillableGameEntity : public GameEntity {
 public:
-	virtual int getHealth(void) const = 0;
+	KillableGameEntity(const int);
+	virtual ~KillableGameEntity() {}
+	int getHealth(void) const;
 	virtual void damage(const int) = 0;
 protected:
-	static int decHealth(const int, const int);
+	void decHealth(const int);
+
+	int entityHealth;
 };
-
-
-inline
-int KillableGameEntity::decHealth(const int curHealth, const int damage) {
-	return std::max(curHealth - damage, 0);
-}
 
 
 inline
 Vector2D<> GameEntity::getPos() const {
 	return entityPos;
+}
+
+
+inline
+KillableGameEntity::KillableGameEntity(const int hp) : entityHealth(hp) {
+}
+
+
+inline
+int KillableGameEntity::getHealth() const {
+	return entityHealth;
+}
+
+
+inline
+void KillableGameEntity::decHealth(const int damage) {
+	entityHealth = std::max(entityHealth - damage, 0);
 }

@@ -17,18 +17,16 @@ public:
 	virtual void spawn(CreatureManager*, const int, const int) = 0;
 	void updatePos(const float, const float) override;
 	void setPos(const float, const float) override;
-	int getHealth(void) const override;
 	void damage(const int) override;
 	HealthBar*& getHealthBar(void);
 protected:
 	Vector2D<float> dpos;
 	HealthBar* healthBar = nullptr;
-	int health;
 };
 
 
 inline
-Creature::Creature(const int hp) : health(hp) {
+Creature::Creature(const int hp) : KillableGameEntity(hp) {
 }
 
 
@@ -54,14 +52,8 @@ void Creature::setPos(const float x, const float y) {
 
 
 inline
-int Creature::getHealth() const {
-	return health;
-}
-
-
-inline
 void Creature::damage(const int d) {
-	health = decHealth(health, d);
+	decHealth(d);
 }
 
 
