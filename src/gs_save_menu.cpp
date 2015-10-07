@@ -1,4 +1,4 @@
-#include "save_menu.h"
+#include "gs_save_menu.h"
 #include "canvas.h"
 #include "constants.h"
 #include "dialog_data.h"
@@ -10,6 +10,7 @@
 #include "save_helper.h"
 #include "state_context.h"
 #include "state_manager.h"
+#include "utility.h"	// q
 #include "widget_button.h"
 #include "widget_event.h"
 #include "widget_layout.h"
@@ -151,7 +152,7 @@ void SaveMenu::saveButtonCallback() {
 		GameData::instance().wData.dialogData = data;
 		data->title = "Confirm Save Overwrite";
 		data->message =
-			"The save file \"" + textEdit->getText() + "\" already exists. Are you sure you want to overwrite?"
+			"The save file " + q(textEdit->getText()) + " already exists. Are you sure you want to overwrite?"
 		;
 		data->buttonText.reserve(2);
 		data->buttonText.push_back("Yes");

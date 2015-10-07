@@ -1,4 +1,4 @@
-#include "game_menu.h"
+#include "gs_game_menu.h"
 #include "canvas.h"
 #include "constants.h"
 #include "font.h"

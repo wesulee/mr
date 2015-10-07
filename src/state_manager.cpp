@@ -8,13 +8,13 @@
 #include "constants.h"
 #endif
 // All GameStates
-#include "main_menu.h"
-#include "initial_screen.h"
-#include "main_game.h"
-#include "game_menu.h"
-#include "load_menu.h"
-#include "save_menu.h"
-#include "dialog_state.h"
+#include "gs_main_menu.h"
+#include "gs_initial_screen.h"
+#include "gs_main_game.h"
+#include "gs_game_menu.h"
+#include "gs_load_menu.h"
+#include "gs_save_menu.h"
+#include "gs_dialog.h"
 
 
 namespace StMHelper {

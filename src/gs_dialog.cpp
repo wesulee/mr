@@ -1,4 +1,4 @@
-#include "dialog_state.h"
+#include "gs_dialog.h"
 #include "canvas.h"
 #include "constants.h"
 #include "exception.h"

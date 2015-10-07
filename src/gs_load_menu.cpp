@@ -1,4 +1,4 @@
-#include "load_menu.h"
+#include "gs_load_menu.h"
 #include "canvas.h"
 #include "constants.h"
 #include "dialog_data.h"
@@ -10,6 +10,7 @@
 #include "sdl_header.h"
 #include "state_context.h"
 #include "state_manager.h"
+#include "utility.h"	// q
 #include "widget_data.h"
 #include "widget_event.h"
 #include "widget_layout.h"
@@ -109,7 +110,7 @@ void LoadMenu::selectedCallback(TextItem* item) {
 	std::shared_ptr<DialogData> data = std::make_shared<DialogData>();
 	GameData::instance().wData.dialogData = data;
 	data->title = "Load";
-	data->message = "Are you sure you want to load " + item->getText() + '?';
+	data->message = "Are you sure you want to load " + q(item->getText()) + '?';
 	data->buttonText.reserve(2);
 	data->buttonText.push_back("Yes");
 	data->buttonText.push_back("No");

@@ -1,4 +1,4 @@
-#include "main_game.h"
+#include "gs_main_game.h"
 #include "canvas.h"
 #include "game_data.h"
 #include "image.h"

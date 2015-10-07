@@ -1,4 +1,4 @@
-#include "initial_screen.h"
+#include "gs_initial_screen.h"
 #include "canvas.h"
 #include "console.h"
 #include "constants.h"
@@ -17,8 +17,8 @@
 
 
 namespace InitialScreenSettings {
-	constexpr char dirCreateSuccess[] = "Created directory \"";
-	constexpr char dirCreateFailure[] = "Unable to create directory \"";
+	constexpr char dirCreateSuccess[] = "Created directory ";
+	constexpr char dirCreateFailure[] = "Unable to create directory ";
 	constexpr int barWidth = 150;
 	constexpr int barHeight = 10;
 	constexpr int barOutline = 1;
@@ -38,12 +38,12 @@ static void checkFolder(const std::string& path, bool writePerm) {
 		// If unable to create directory, report and continue
 		try {
 			if (fs::create_directory(p))
-				Console::begin() << dirCreateSuccess << path << '\"' << std::endl;
+				Console::begin() << dirCreateSuccess << q(path) << std::endl;
 			else
-				Console::begin() << dirCreateFailure << path << '\"' << std::endl;
+				Console::begin() << dirCreateFailure << q(path) << std::endl;
 		}
 		catch (fs::filesystem_error const& e) {
-			Console::begin() << dirCreateFailure << path << "\". Details: " << e.what() << std::endl;
+			Console::begin() << dirCreateFailure << q(path) << ". Details: " << e.what() << std::endl;
 		}
 	}
 	status = fs::status(p);
