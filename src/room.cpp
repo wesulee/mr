@@ -32,9 +32,66 @@ namespace RoomConnHelper {
 
 
 namespace RoomHelper {
-	// default SpriteSheet name
-	constexpr char defSSName[] = "default";
+
+// default SpriteSheet name
+constexpr char defSSName[] = "default";
+
+
+static void renderBgRepeatHoriz(Sprite& spr, SDL_Surface* dst, SDL_Rect& dstRect, const int count) {
+	assert(count > 0);
+	for (int i = 0; i < count; ++i, dstRect.x += dstRect.w)
+		spr.blit(dst, &dstRect);
 }
+
+
+static void renderBgRepeatVert(Sprite& spr, SDL_Surface* dst, SDL_Rect& dstRect, const int count) {
+	assert(count > 0);
+	for (int i = 0; i < count; ++i, dstRect.y += dstRect.h)
+		spr.blit(dst, &dstRect);
+}
+
+
+static void renderBgRepeat(Sprite& spr, SDL_Surface* dst, SDL_Rect& dstRect, int rx, int ry) {
+	assert(dst != nullptr);
+	assert(!((rx == 0) && (ry == 0)));
+	assert(dstRect.w == spr.getDrawWidth());
+	assert(dstRect.h == spr.getDrawHeight());
+	switch (rx) {
+	case -1:
+		// ceil((remaining horiz space) / (sprite width))
+		rx = ((dst->w - dstRect.x + dstRect.w - 1) / dstRect.w);
+		break;
+	case 0:
+		break;
+	default:
+		// rx is repeat x, or the number of times to repeat drawing of sprite horizontally,
+		//   so the number of rects to draw is rx+1
+		++rx;
+	}
+	switch (ry) {
+	case -1:
+		// ceil((remaining vert space) / (sprite height))
+		ry = ((dst->w - dstRect.y + dstRect.h - 1) / dstRect.h);
+		break;
+	case 0:
+		break;
+	default:
+		++ry;
+	}
+	if (rx == 0) {
+		renderBgRepeatVert(spr, dst, dstRect, ry);
+	}
+	else if (ry == 0) {
+		renderBgRepeatHoriz(spr, dst, dstRect, rx);
+	}
+	else {
+		const int startX = dstRect.x;
+		for (int i = 0; i < ry; ++i, dstRect.x = startX, dstRect.y += dstRect.h)
+			renderBgRepeatHoriz(spr, dst, dstRect, rx);
+	}
+}
+
+} // namespace RoomHelper
 
 
 RoomConnections::~RoomConnections() {
@@ -301,20 +358,31 @@ void Room::notifyClear() {
 
 // Render background image
 SDL_Surface* Room::renderBg(const rapidjson::Value& data) {
+	using namespace RoomHelper;
 	namespace rj = rapidjson;
 	SDL_Rect dstRect;
 	SDL_Surface* surf = SDL::newSurface24(Constants::roomWidth, Constants::roomHeight);
 	SDL_FillRect(surf, nullptr, SDL::mapRGB(surf->format, COLOR_BLACK));
 	Sprite spr;
+	int repeatX = 0;
+	int repeatY = 0;
 	for (rj::Value::ConstValueIterator it = data.Begin(); it != data.End(); ++it) {
 		spr = sprData.ss->get((*it)["name"].GetString());
 		dstRect.w = spr.getDrawWidth();
 		dstRect.h = spr.getDrawHeight();
 		dstRect.x = (*it)["x"].GetInt();
 		dstRect.y = (*it)["y"].GetInt();
-		if (!spr.blit(surf, &dstRect)) {
-			// error drawing sprite, log error and continue
-			SDL::logError("Room::renderBg blit");
+		if (it->HasMember("rx"))
+			repeatX = (*it)["rx"].GetInt();
+		if (it->HasMember("ry"))
+			repeatY = (*it)["ry"].GetInt();
+		if ((repeatX != 0) || (repeatY != 0)) {
+			renderBgRepeat(spr, surf, dstRect, repeatX, repeatY);
+			repeatX = 0;
+			repeatY = 0;
+		}
+		else {
+			spr.blit(surf, &dstRect);
 		}
 	}
 	return surf;
