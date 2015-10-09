@@ -9,14 +9,10 @@
 #include "game_data.h"
 #include "image.h"
 #include "logger.h"
-#include "save_data.h"
 #include "sprite.h"
 #include "sprite_sheet.h"
 #include "utility.h"
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/serialization/vector.hpp>	// SaveData
 #include <cstdint>	// uintptr_t
 #include <fstream>
 #include <iomanip>
@@ -314,24 +310,6 @@ void ResourceManager::freeSpriteSheet(const std::string& name, const bool surf, 
 			delSpriteSheet(sheets, it);
 		}
 	}
-}
-
-
-std::shared_ptr<SaveData> ResourceManager::getSaveData(const std::string& fname) {
-	std::string filePath = getPath(ResourceType::SAVE, fname);
-	std::shared_ptr<SaveData> data = std::make_shared<SaveData>();
-	std::ifstream file{filePath};
-	boost::archive::text_iarchive ar{file};
-	ar & (*data);
-	return data;
-}
-
-
-void ResourceManager::saveSaveData(const std::string& fname, const SaveData& data) {
-	std::string filePath = getPath(ResourceType::SAVE, fname);
-	std::ofstream file{filePath};
-	boost::archive::text_oarchive ar{file};
-	ar & data;
 }
 
 
@@ -721,10 +699,6 @@ std::string ResourceManager::getPath(const ResourceType t, const std::string& na
 		appendDir(path, "rooms");
 		path += name;
 		path += ".json";
-		break;
-	case ResourceType::SAVE:
-		path = GameData::instance().savePath;
-		path += name;	// name should already include extension
 		break;
 	case ResourceType::SPRITE:
 		appendDir(path, "sprites");

@@ -19,7 +19,6 @@ class AnimatedSpriteSource;
 enum class AnimationType;
 class Color;
 class FontResource;
-class SaveData;
 class Sprite;
 class SpriteSheet;
 class UniformAnimatedSpriteSource;
@@ -80,7 +79,7 @@ class ResourceManager {
 		ic.countTex -= toCounterType(tex);
 	}
 
-	enum class ResourceType {CREATURE, FONT, IMAGE, IMAGE_KEY, ROOM, SAVE, SPRITE};
+	enum class ResourceType {CREATURE, FONT, IMAGE, IMAGE_KEY, ROOM, SPRITE};
 	enum class AnimationType {UNIFORM};
 public:
 	ResourceManager() = default;
@@ -98,8 +97,6 @@ public:
 	SpriteSheet* getSpriteSheet(const std::string&, const bool, const bool);
 	void freeSpriteSheet(const std::string&, const bool, const bool);
 	// other
-	std::shared_ptr<SaveData> getSaveData(const std::string&);
-	void saveSaveData(const std::string&, const SaveData&);
 	std::shared_ptr<rapidjson::Document> getRoomData(const int, const int);
 	std::shared_ptr<rapidjson::Document> getCreatureData(const std::string&);
 	Sprite getSprite(const std::string&);

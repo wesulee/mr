@@ -16,4 +16,7 @@ public:
 	static std::string userNameToFileName(const std::string&);
 	static void save(const std::string&, const SaveData&);
 	static std::shared_ptr<SaveData> getData(const std::string&);
+private:
+	static std::string getTempFileName(const std::string&);
+	static std::string getPath(const std::string&);
 };
