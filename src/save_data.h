@@ -8,17 +8,18 @@ struct SaveData {
 	std::vector<uint8_t> mapVec;
 	int roomX;
 	int roomY;
+	// player
 	float posX;
 	float posY;
-	float pHealth;	// player health
+	int health;
 
 	template<class Archive>
-	void serialize(Archive& ar, const unsigned int ver) {
-		(void)ver;
+	void serialize(Archive& ar, const unsigned int) {
 		ar & mapVec;
-		ar & posX& posY;
 		ar & roomX;
 		ar & roomY;
-		ar & pHealth;;
+		ar & posX;
+		ar & posY;
+		ar & health;;
 	}
 };

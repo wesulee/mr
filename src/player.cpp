@@ -156,12 +156,15 @@ void Player::setDirection(const int dir) {
 void Player::setSaveData(SaveData& data) const {
 	data.posX = entityPos.x;
 	data.posY = entityPos.y;
+	data.health = entityHealth;
 }
 
 
 void Player::getSaveData(const SaveData& data) {
 	entityPos.x = data.posX;
 	entityPos.y = data.posY;
+	entityHealth = data.health;
+	healthBar.refresh();
 }
 
 
