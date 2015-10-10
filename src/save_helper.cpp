@@ -1,7 +1,10 @@
 #include "save_helper.h"
 #include "constants.h"
+#include "exception.h"
 #include "game_data.h"
+#include "logger.h"
 #include "save_data.h"
+#include "utility.h"	// q
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/filesystem.hpp>
@@ -44,9 +47,26 @@ std::string SaveHelper::userNameToFileName(const std::string& name) {
 
 void SaveHelper::save(const std::string& name, const SaveData& data) {
 	std::string filePath = getPath(userNameToFileName(name));
-	std::ofstream file{filePath};
-	boost::archive::text_oarchive ar{file};
-	ar & data;
+	fs::file_status status = fs::status(filePath);
+	if (fs::exists(status)) {
+		// move old save to temporary path, save new data, remove old save
+		std::string tempFilePath = getPath(getTempFileName(userNameToFileName(name)));
+		fs::file_status statusTemp = fs::status(tempFilePath);
+		if (fs::exists(statusTemp)) {
+			// temporary file path already exists, report error
+			Logger::instance().log(RuntimeError{
+				"unable to save",
+				"temp path " + q(tempFilePath) + " already exists"
+			});
+			return;
+		}
+		fs::rename(filePath, tempFilePath);
+		doSave(filePath, data);
+		fs::remove(tempFilePath);
+	}
+	else {
+		doSave(filePath, data);
+	}
 }
 
 
@@ -67,4 +87,11 @@ std::string SaveHelper::getTempFileName(const std::string& fname) {
 
 std::string SaveHelper::getPath(const std::string& fname) {
 	return (GameData::instance().savePath + fname);
+}
+
+
+void SaveHelper::doSave(const std::string& filePath, const SaveData& data) {
+	std::ofstream file{filePath};
+	boost::archive::text_oarchive ar{file};
+	ar & data;
 }

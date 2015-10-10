@@ -19,4 +19,5 @@ public:
 private:
 	static std::string getTempFileName(const std::string&);
 	static std::string getPath(const std::string&);
+	static void doSave(const std::string&, const SaveData&);
 };
