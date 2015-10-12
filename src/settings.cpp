@@ -1,4 +1,5 @@
 #include "settings.h"
+#include "console.h"
 #include "constants.h"
 #include "game_data.h"	// exitCode
 #include "ini_parser.h"
@@ -231,6 +232,7 @@ void printSDLError(std::ostream& os) {
 Settings::Settings(int argc, char** argv) {
 	using namespace SettingsSettings;
 	using namespace SettingsHelper;
+	Console::startTimer();
 	SET_FLAG(flags, toIndex(Index::VSYNC), fVsync);
 	SET_FLAG(flags, toIndex(Index::DISPLAYFPS), fDisplayFPS);
 	SET_FLAG(flags, toIndex(Index::PAUSEFOCUSLOST), fPauseFocusLost);
