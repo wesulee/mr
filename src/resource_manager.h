@@ -18,6 +18,9 @@
 class AnimatedSpriteSource;
 enum class AnimationType;
 class Color;
+class Entity;
+class EntityResource;
+enum class EntityResourceID : int;
 class FontResource;
 class Sprite;
 class SpriteSheet;
@@ -89,6 +92,9 @@ public:
 	UniformAnimatedSpriteSource* getUSprSrc(const std::string&);
 	AnimatedSpriteSource* loadAnimation(const rapidjson::Value&);
 	void freeAnimation(const std::string&);
+	// entity
+	EntityResource* getEntity(Entity*, const EntityResourceID);
+	void freeEntity(Entity*, const EntityResourceID);
 	// font
 	TextRenderer* getDefaultTR(void);
 	FontResource loadFont(const Font&, const bool=true);
@@ -125,5 +131,6 @@ private:
 	std::unordered_map<std::string, ImgCounter<ImageResource>> images;
 	std::unordered_map<std::string, ImgCounter<SpriteSheet*>> sheets;
 	std::unordered_map<std::string, AnimationType> animationLookup;
+	std::unordered_map<int, ResourceCounter<EntityResource*>> entityResources;
 	std::unordered_set<TTF_Font*> fontsPrivate;
 };

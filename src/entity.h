@@ -2,19 +2,28 @@
 
 #include "utility.h"	// Vector2D
 #include <algorithm>	// max
+#include <cassert>
 
 
 class Canvas;
+class EntityResource;
 class SDL_Rect;
 
 
-// Represents something that can be seen
+// Represents something that can be seen.
+// An entity may require resources (sprites, fonts, etc), in which case it
+//   may be useful to override loadResource() and unloadResource().
+// loadResource() returns a new instance of the resources the entity requires.
+// unloadResource() frees the resources acquired from loadResource().
+// loadResource() and unloadResource() should never be called directly by the entity.
 class Entity {
 public:
 	Entity() {}
 	virtual ~Entity() {}
 	virtual bool update(void) = 0;
 	virtual void draw(Canvas&) = 0;
+	virtual EntityResource* loadResource(void);
+	virtual void unloadResource(EntityResource*);
 };
 
 
@@ -43,6 +52,19 @@ protected:
 
 	int entityHealth;
 };
+
+
+inline
+EntityResource* Entity::loadResource() {
+	assert(false);
+	return nullptr;
+}
+
+
+inline
+void Entity::unloadResource(EntityResource*) {
+	assert(false);
+}
 
 
 inline

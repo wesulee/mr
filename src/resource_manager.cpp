@@ -3,6 +3,8 @@
 #include "color.h"
 #include "constants.h"
 #include "data_validation.h"
+#include "entity.h"
+#include "entity_resource.h"
 #include "exception.h"
 #include "font.h"
 #include "font_resource.h"
@@ -162,6 +164,50 @@ void ResourceManager::freeAnimation(const std::string& name) {
 	}
 	delete it->second;
 	animations.erase(it);
+}
+
+
+EntityResource* ResourceManager::getEntity(Entity* e, const EntityResourceID id) {
+	auto it = entityResources.find(static_cast<int>(id));
+	if (it == entityResources.end()) {
+		// load
+		EntityResource* res = e->loadResource();
+		if (res == nullptr) {
+			Logger::instance().exit(RuntimeError{
+				"EntityResource error",
+				"new resource is nullptr ID " + std::to_string(static_cast<int>(id))
+			});
+		}
+		assert(res->getID() == id);
+		ResourceCounter<EntityResource*> resCounter;
+		resCounter.res = res;
+		resCounter.count = 1;
+		entityResources[static_cast<int>(id)] = resCounter;
+		return res;
+	}
+	else {
+		++(it->second.count);
+		return it->second.res;
+	}
+}
+
+
+void ResourceManager::freeEntity(Entity* e, const EntityResourceID id) {
+	auto it = entityResources.find(static_cast<int>(id));
+	if (it == entityResources.end()) {
+		Logger::instance().exit(RuntimeError{
+			"EntityResource error",
+			"cannot free not loaded ID " + std::to_string(static_cast<int>(id))
+		});
+	}
+	else {
+		assert(it->second.count != 0);
+		--(it->second.count);
+		if (it->second.count == 0) {
+			e->unloadResource(it->second.res);
+			entityResources.erase(it);
+		}
+	}
 }
 
 
