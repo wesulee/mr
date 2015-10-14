@@ -1,12 +1,33 @@
 #include "player.h"
 #include "canvas.h"
 #include "constants.h"
+#include "entity_resource.h"
 #include "game_data.h"
 #include "resource_manager.h"
 #include "room.h"
 #include "save_data.h"
+#include "sprite_sheet.h"
 #include <cassert>
 #include <cmath>
+
+
+class PlayerResource : public EntityResource {
+public:
+	PlayerResource();
+	~PlayerResource();
+
+	SpriteSheet* ss;
+};
+
+
+PlayerResource::PlayerResource() : EntityResource(EntityResourceID::PLAYER) {
+	ss = GameData::instance().resources->getSpriteSheet("default", false, true);
+}
+
+
+PlayerResource::~PlayerResource() {
+	GameData::instance().resources->freeSpriteSheet("default", false, true);
+}
 
 
 // in order to draw Player, must add Sprites through MultistateSprite::addState()
@@ -15,13 +36,15 @@ Player::Player()
 , speed(Constants::PBaseMovSpeed * Constants::frameDurationFloat / 1000) {
 	entityPos.x = 200;	// default values
 	entityPos.y = 200;
-	ms.addState(GameData::instance().resources->getSprite("player_l"));
-	ms.addState(GameData::instance().resources->getSprite("player_r"));
+	EntityResource* res = GameData::instance().resources->getEntity(this, EntityResourceID::PLAYER);
+	PlayerResource* pRes = dynamic_cast<PlayerResource*>(res);
+	ms.addState(pRes->ss->get("player_l"));
+	ms.addState(pRes->ss->get("player_r"));
 }
 
 
 Player::~Player() {
-	// do nothing
+	GameData::instance().resources->freeEntity(this, EntityResourceID::PLAYER);
 }
 
 
@@ -76,6 +99,16 @@ void Player::draw(Canvas& can) {
 
 void Player::setRoom(Room* r) {
 	room = r;
+}
+
+
+EntityResource* Player::loadResource() {
+	return new PlayerResource;
+}
+
+
+void Player::unloadResource(EntityResource* res) {
+	delete res;
 }
 
 

@@ -38,6 +38,7 @@ Player direction is an integer such that if DIR_N bit is set, then direction is 
 Directions can cancel, so if N and S are set, direction is NONE.
 */
 class Player : public KillableGameEntity {
+	enum : std::size_t {SPR_STATE_LEFT=0, SPR_STATE_RIGHT};
 public:
 	Player();
 	~Player();
@@ -45,6 +46,8 @@ public:
 	void draw(Canvas&) override;
 	void setRoom(Room*);
 	// Entity methods
+	EntityResource* loadResource(void) override;
+	void unloadResource(EntityResource*) override;
 	SDL_Rect getBounds(void) const override;
 	void updatePos(const float, const float) override;
 	void setPos(const float, const float) override;
@@ -61,6 +64,4 @@ private:
 	PlayerDirection direction = PlayerDirection::NONE;
 	float speed;
 	bool moving = false;
-	static constexpr std::size_t SPR_STATE_LEFT = 0;
-	static constexpr std::size_t SPR_STATE_RIGHT = 1;
 };
