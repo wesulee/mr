@@ -6,9 +6,6 @@
 #include "utility.h"
 
 
-class Room;
-
-
 /*
 Behavior: Always moving toward target when not in attack range.
 When attacking: freeze position for some time, begin attack animation, then attack.
@@ -34,7 +31,6 @@ private:
 	UniformAnimatedSprite sprMovR;
 	Counter counter;
 	AnimatedSprite* curSpr = nullptr;
-	Room* room = nullptr;
 	KillableGameEntity* target = nullptr;
 	CreatureState state = CreatureState::NONE;
 	int attackTicks = 0;

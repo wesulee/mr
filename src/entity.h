@@ -35,7 +35,7 @@ public:
 	virtual SDL_Rect getBounds(void) const = 0;
 	Vector2D<> getPos(void) const;
 	virtual void updatePos(const float, const float) = 0;
-	virtual void setPos(const float, const float) = 0;
+	virtual void setPos(const Vector2D<>&);
 protected:
 	Vector2D<> entityPos;
 };
@@ -70,6 +70,12 @@ void Entity::unloadResource(EntityResource*) {
 inline
 Vector2D<> GameEntity::getPos() const {
 	return entityPos;
+}
+
+
+inline
+void GameEntity::setPos(const Vector2D<>& pos) {
+	entityPos = pos;
 }
 
 

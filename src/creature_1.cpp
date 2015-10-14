@@ -39,7 +39,6 @@ Creature1::~Creature1() {
 
 
 void Creature1::spawn(CreatureManager* cm, const int x, const int y) {
-	room = cm->getRoom();
 	target = cm->getTarget();
 	entityPos.x = x;
 	entityPos.y = y;
@@ -135,29 +134,7 @@ void Creature1::updateTargetPos() {
 
 void Creature1::updatePosition() {
 	curSpr->update();
-	int newXInt;
-	int newYInt;
-	float newX = entityPos.x + dpos.x;
-	float newY = entityPos.y + dpos.y;
-	if (dpos.x >= 0) {
-		newXInt = static_cast<int>(std::ceil(newX));
-	}
-	else {
-		newXInt = static_cast<int>(newX);
-	}
-	if (dpos.y >= 0) {
-		newYInt = static_cast<int>(std::ceil(newY));
-	}
-	else {
-		newYInt = static_cast<int>(newY);
-	}
-	if (room->space(newXInt, newYInt, sprMovL.getDrawWidth(), sprMovL.getDrawHeight())) {
-		entityPos.x = newX;
-		entityPos.y = newY;
-	}
-	else {
-		room->updateEntity(*this, newXInt, newYInt);
-	}
+	GameData::instance().mgo->getRoom().update(*this, dpos);
 }
 
 

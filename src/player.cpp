@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "entity_resource.h"
 #include "game_data.h"
+#include "main_game_objects.h"
 #include "resource_manager.h"
 #include "room.h"
 #include "save_data.h"
@@ -97,11 +98,6 @@ void Player::draw(Canvas& can) {
 }
 
 
-void Player::setRoom(Room* r) {
-	room = r;
-}
-
-
 EntityResource* Player::loadResource() {
 	return new PlayerResource;
 }
@@ -120,12 +116,6 @@ SDL_Rect Player::getBounds() const {
 void Player::updatePos(const float dx, const float dy) {
 	entityPos.x += dx;
 	entityPos.y += dy;
-}
-
-
-void Player::setPos(const float x, const float y) {
-	entityPos.x = x;
-	entityPos.y = y;
 }
 
 
@@ -202,27 +192,5 @@ void Player::getSaveData(const SaveData& data) {
 
 
 void Player::move(const float dx, const float dy) {
-	int newXInt;
-	int newYInt;
-	float newX = entityPos.x + dx;
-	float newY = entityPos.y + dy;
-	if (dx >= 0) {
-		newXInt = static_cast<int>(std::ceil(newX));
-	}
-	else {
-		newXInt = static_cast<int>(newX);
-	}
-	if (dy >= 0) {
-		newYInt = static_cast<int>(std::ceil(newY));
-	}
-	else {
-		newYInt = static_cast<int>(newY);
-	}
-	if (room->space(newXInt, newYInt, ms.getDrawWidth(), ms.getDrawHeight())) {
-		entityPos.x = newX;
-		entityPos.y = newY;
-	}
-	else {
-		room->updateEntity(*this, newXInt, newYInt);
-	}
+	 GameData::instance().mgo->getRoom().update(*this, Vector2D<>{dx, dy});
 }

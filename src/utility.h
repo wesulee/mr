@@ -78,6 +78,8 @@ int msToTicks(const float, const int);
 template<typename T = Constants::float_type>
 class Vector2D {
 public:
+	typedef T underlying_type;
+
 	Vector2D() = default;
 	Vector2D(const T a, const T b) : x(a), y(b) {}
 	~Vector2D() = default;

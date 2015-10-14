@@ -346,7 +346,39 @@ void Room::updateEntity(GameEntity& entity, const int x, const int y) const {
 			deltaY -= increment;
 		}
 	}
-	entity.setPos(currentX, currentY);
+	entity.setPos(Vector2D<>{
+		static_cast<Vector2D<>::underlying_type>(currentX),
+		static_cast<Vector2D<>::underlying_type>(currentY)
+	});
+}
+
+
+void Room::update(GameEntity& entity, const Vector2D<>& deltaPos) {
+	SDL_Rect entityBounds = entity.getBounds();
+	Vector2D<> entityPos = entity.getPos();
+	Vector2D<> newPos;
+	int newXInt;
+	int newYInt;
+	newPos.x = entityPos.x + deltaPos.x;
+	newPos.y = entityPos.y + deltaPos.y;
+	if (deltaPos.x >= 0) {
+		newXInt = static_cast<int>(std::ceil(newPos.x));
+	}
+	else {
+		newXInt = static_cast<int>(newPos.x);
+	}
+	if (deltaPos.y >= 0) {
+		newYInt = static_cast<int>(std::ceil(newPos.y));
+	}
+	else {
+		newYInt = static_cast<int>(newPos.y);
+	}
+	if (space(newXInt, newYInt, entityBounds.w, entityBounds.h)) {
+		entity.setPos(newPos);
+	}
+	else {
+		updateEntity(entity, newXInt, newYInt);
+	}
 }
 
 

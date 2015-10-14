@@ -16,7 +16,6 @@ public:
 	virtual ~Creature();
 	virtual void spawn(CreatureManager*, const int, const int) = 0;
 	void updatePos(const float, const float) override;
-	void setPos(const float, const float) override;
 	void damage(const int) override;
 	HealthBar*& getHealthBar(void);
 protected:
@@ -41,13 +40,6 @@ inline
 void Creature::updatePos(const float x, const float y) {
 	entityPos.x += x;
 	entityPos.y += y;
-}
-
-
-inline
-void Creature::setPos(const float x, const float y) {
-	entityPos.x = x;
-	entityPos.y = y;
 }
 
 

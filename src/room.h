@@ -6,6 +6,7 @@
 #include "room_qtree.h"
 #include "sdl_helper.h"
 #include "shapes.h"
+#include "utility.h"	// Vector2D
 #include <utility>
 #include <vector>
 
@@ -65,6 +66,7 @@ public:
 	void set(rapidjson::Document&);
 	bool space(const int, const int, const int, const int) const;
 	void updateEntity(GameEntity&, const int, const int) const;
+	void update(GameEntity&, const Vector2D<>&);
 	void notifyClear(void);	// room has been cleared
 private:
 	SDL_Surface* renderBg(const rapidjson::Value&);

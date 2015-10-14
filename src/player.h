@@ -17,7 +17,6 @@
 
 
 class SaveData;
-class Room;
 
 
 enum class PlayerDirection {NONE, N, E, S, W, NE, SE, SW, NW};
@@ -44,13 +43,11 @@ public:
 	~Player();
 	bool update(void) override;
 	void draw(Canvas&) override;
-	void setRoom(Room*);
 	// Entity methods
 	EntityResource* loadResource(void) override;
 	void unloadResource(EntityResource*) override;
 	SDL_Rect getBounds(void) const override;
 	void updatePos(const float, const float) override;
-	void setPos(const float, const float) override;
 	void damage(const int) override;
 	void setDirection(const int);
 	void setSaveData(SaveData&) const;
@@ -60,7 +57,6 @@ private:
 
 	PlayerHealthBar healthBar;
 	MultistateSprite ms;
-	Room* room = nullptr;
 	PlayerDirection direction = PlayerDirection::NONE;
 	float speed;
 	bool moving = false;

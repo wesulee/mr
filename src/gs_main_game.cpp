@@ -38,7 +38,6 @@ MainGame::MainGame(std::shared_ptr<StateContext> sc) : GameState(StateType::GAME
 	objects._VFXManager = &vfxm;
 	GameData::instance().mgo = &objects;
 
-	player.setRoom(&room);
 	sm.setPlayer(&player);
 	am.setCreatureManager(&cm);
 
@@ -206,7 +205,7 @@ void MainGame::eventCallback(const SDL_Event& e) {
 }
 
 
-// after returning from a state change, keys need to rechecked
+// after returning from a state change, key states should be rechecked
 void MainGame::refreshPlayerDir() {
 	playerDirection = PLAYER_DIR_NONE;
 	InputHandler* const ih = GameData::instance().inputHandler;
