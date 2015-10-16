@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sdl_header.h"		// SDL_Rect
+#include "utility.h"		// IntPair
 #include <cassert>
 #include <cstddef>
 #include <limits>
@@ -26,23 +27,6 @@ enum class WidgetResizeFlag {NONE, SELF, PARENT, REQUEST_RESIZE};
 enum class WidgetState {OUT, OVER, DOWN};
 
 
-// When used as a size, first is width, second is height.
-struct IntPair {
-	IntPair() = default;
-	IntPair(const IntPair&) = default;
-	IntPair(const int, const int);
-	~IntPair() = default;
-	void set(const int, const int);
-	IntPair& operator=(const IntPair&) = default;
-	IntPair& operator+=(const IntPair&);
-	bool operator==(const IntPair&);
-	bool operator!=(const IntPair&);
-
-	int first;
-	int second;
-};
-
-
 /*
 Methods that begin with _ should only be called by other widgets.
 Widget::bounds determines size and position. Position is always relative to its parent.
@@ -65,6 +49,7 @@ Layouts may make the assumption that after a widget's _resize(), getMinSize() wi
   the same value until after the next _resize(). Once a widget has been added, the size policy is
   assumed to never change.
 WSizeExpand may only be used (as parameter or return) in getPrefSize() and _requestResize().
+When IntPair used as a size, first is width, second is height.
 */
 class Widget {
 public:
@@ -111,38 +96,6 @@ public:
 protected:
 	bool visible = false;
 };
-
-
-inline
-IntPair::IntPair(const int a, const int b) : first(a), second(b) {
-}
-
-
-inline
-void IntPair::set(const int a, const int b) {
-	first = a;
-	second = b;
-}
-
-
-inline
-IntPair& IntPair::operator+=(const IntPair& o) {
-	first += o.first;
-	second += o.second;
-	return *this;
-}
-
-
-inline
-bool IntPair::operator==(const IntPair& o) {
-	return ((first == o.first) && (second == o.second));
-}
-
-
-inline
-bool IntPair::operator!=(const IntPair& o) {
-	return ((first != o.first) || (second != o.second));
-}
 
 
 inline

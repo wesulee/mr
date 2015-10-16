@@ -74,6 +74,22 @@ bool inRange(const T v, const T lo, const T hi) {
 int msToTicks(const float, const int);
 
 
+struct IntPair {
+	IntPair() = default;
+	IntPair(const IntPair&) = default;
+	IntPair(const int, const int);
+	~IntPair() = default;
+	void set(const int, const int);
+	IntPair& operator=(const IntPair&) = default;
+	IntPair& operator+=(const IntPair&);
+	bool operator==(const IntPair&);
+	bool operator!=(const IntPair&);
+
+	int first;
+	int second;
+};
+
+
 // T should be a floating point type
 template<typename T = Constants::float_type>
 class Vector2D {
@@ -149,6 +165,38 @@ private:
 	float da;
 	Counter counter;
 };
+
+
+inline
+IntPair::IntPair(const int a, const int b) : first(a), second(b) {
+}
+
+
+inline
+void IntPair::set(const int a, const int b) {
+	first = a;
+	second = b;
+}
+
+
+inline
+IntPair& IntPair::operator+=(const IntPair& o) {
+	first += o.first;
+	second += o.second;
+	return *this;
+}
+
+
+inline
+bool IntPair::operator==(const IntPair& o) {
+	return ((first == o.first) && (second == o.second));
+}
+
+
+inline
+bool IntPair::operator!=(const IntPair& o) {
+	return ((first != o.first) || (second != o.second));
+}
 
 
 inline
