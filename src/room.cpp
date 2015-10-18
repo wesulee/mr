@@ -8,6 +8,7 @@
 #include "sprite.h"
 #include "sprite_sheet.h"
 #include <cassert>
+#include <cmath>
 
 
 namespace RoomConnHelper {
@@ -89,6 +90,13 @@ static void renderBgRepeat(Sprite& spr, SDL_Surface* dst, SDL_Rect& dstRect, int
 		for (int i = 0; i < ry; ++i, dstRect.x = startX, dstRect.y += dstRect.h)
 			renderBgRepeatHoriz(spr, dst, dstRect, rx);
 	}
+}
+
+
+inline
+static int sign(const int n) {
+	assert(n != 0);
+	return (n > 0 ? 1 : -1);
 }
 
 } // namespace RoomHelper
@@ -322,63 +330,74 @@ bool Room::space(const int x, const int y, const int w, const int h) const {
 }
 
 
-// attempt to move entity to (x, y)
-void Room::updateEntity(GameEntity& entity, const int x, const int y) const {
-	SDL_Rect rect = entity.getBounds();
-	int currentX = rect.x;
-	int currentY = rect.y;
-	int deltaX = x - rect.x;
-	int deltaY = y - rect.y;
-	int increment;
-	if (deltaX != 0) {
-		// attempt to move along x axis
-		increment = deltaX > 0 ? 1 : -1;
-		while ((deltaX != 0) && space(currentX + increment, currentY, rect.w, rect.h)) {
-			currentX += increment;
-			deltaX -= increment;
-		}
-	}
-	if (deltaY != 0) {
-		// move along y axis
-		increment = deltaY > 0 ? 1 : -1;
-		while ((deltaY != 0) && space(currentX, currentY + increment, rect.w, rect.h)) {
-			currentY += increment;
-			deltaY -= increment;
-		}
-	}
-	entity.setPos(Vector2D<>{
-		static_cast<Vector2D<>::underlying_type>(currentX),
-		static_cast<Vector2D<>::underlying_type>(currentY)
-	});
+bool Room::space(const SDL_Rect& r) const {
+	return !room->block.collides(r);
 }
 
 
+// Attempt to move entity by deltaPos, or as close to it as possible.
 void Room::update(GameEntity& entity, const Vector2D<>& deltaPos) {
 	SDL_Rect entityBounds = entity.getBounds();
 	Vector2D<> entityPos = entity.getPos();
-	Vector2D<> newPos;
-	int newXInt;
-	int newYInt;
-	newPos.x = entityPos.x + deltaPos.x;
-	newPos.y = entityPos.y + deltaPos.y;
-	if (deltaPos.x >= 0) {
-		newXInt = static_cast<int>(std::ceil(newPos.x));
+	Vector2D<> newPos{entityPos.x + deltaPos.x, entityPos.y + deltaPos.y};
+	Vector2D<> actualNewPos;
+	const IntPair deltaPosInt{
+		static_cast<int>(newPos.x) - static_cast<int>(entityPos.x),
+		static_cast<int>(newPos.y) - static_cast<int>(entityPos.y)
+	};
+	IntPair newDeltaPosInt{0, 0};	// default value
+	if (deltaPosInt.first == 0) {
+		if (deltaPosInt.second == 0) {
+			// Since integer position has not changed, this position change is always allowed
+			entity.setPos(newPos);
+			return;
+		}
+		else {
+			newDeltaPosInt.second = updateVert(entityBounds, deltaPosInt.second);
+		}
+	}
+	else if (deltaPosInt.second == 0) {
+		newDeltaPosInt.first = updateHoriz(entityBounds, deltaPosInt.first);
+	}
+	else if ((std::abs(deltaPosInt.first) > 1) || (std::abs(deltaPosInt.second) > 1)) {
+		newDeltaPosInt = updateDiag(entityBounds, deltaPosInt);
+		if (newDeltaPosInt.first == 0) {
+			if (newDeltaPosInt.second == 0) {
+				// Most likely entity walking into a block rect, attempt to move
+				//   in line in each direction, since there may still be room.
+				newDeltaPosInt.first = updateHoriz(entityBounds, deltaPosInt.first);
+				newDeltaPosInt.second = updateVert(entityBounds, deltaPosInt.second);
+			}
+			else {
+				// If one direction moves a little, and the other none, then
+				//   most likely running into a block rect where updateDiag()
+				//   returns after the first step. Continue trying to move
+				//   in the direction in which step was taken.
+				entityBounds.y += newDeltaPosInt.second;
+				if ((deltaPosInt.second - newDeltaPosInt.second) != 0) {
+					newDeltaPosInt.second += updateVert(entityBounds, deltaPosInt.second - newDeltaPosInt.second);
+				}
+			}
+		}
+		else if (newDeltaPosInt.second == 0) {
+			entityBounds.x += newDeltaPosInt.first;
+			if ((deltaPosInt.first - newDeltaPosInt.first) != 0) {
+				newDeltaPosInt.first += updateHoriz(entityBounds, deltaPosInt.first - newDeltaPosInt.first);
+			}
+		}
 	}
 	else {
-		newXInt = static_cast<int>(newPos.x);
+		newDeltaPosInt = updateStep(entityBounds, deltaPosInt);
 	}
-	if (deltaPos.y >= 0) {
-		newYInt = static_cast<int>(std::ceil(newPos.y));
-	}
-	else {
-		newYInt = static_cast<int>(newPos.y);
-	}
-	if (space(newXInt, newYInt, entityBounds.w, entityBounds.h)) {
-		entity.setPos(newPos);
-	}
-	else {
-		updateEntity(entity, newXInt, newYInt);
-	}
+	if (deltaPosInt.first == newDeltaPosInt.first)
+		actualNewPos.x = newPos.x;
+	else
+		actualNewPos.x = (entityPos.x + static_cast<decltype(entityPos.x)>(newDeltaPosInt.first));
+	if (deltaPosInt.second == newDeltaPosInt.second)
+		actualNewPos.y = newPos.y;
+	else
+		actualNewPos.y = (entityPos.y + static_cast<decltype(entityPos.y)>(newDeltaPosInt.second));
+	entity.setPos(actualNewPos);
 }
 
 
@@ -418,4 +437,141 @@ SDL_Surface* Room::renderBg(const rapidjson::Value& data) {
 		}
 	}
 	return surf;
+}
+
+
+IntPair Room::updateStep(const SDL_Rect& rect, const IntPair& delta) {
+	assert(std::abs(delta.first) == 1);
+	assert(std::abs(delta.second) == 1);
+	SDL_Rect newRect = rect;
+	const int signX = RoomHelper::sign(delta.first);
+	const int signY = RoomHelper::sign(delta.second);
+	IntPair newDelta{0, 0};
+	newRect.x += signX;
+	if (space(newRect)) {
+		newDelta.first += signX;
+		newRect.y += signY;
+		if (space(newRect))
+			newDelta.second += signY;
+	}
+	else {
+		newRect.x = rect.x;	// reset
+		newRect.y += signY;
+		if (space(newRect)) {
+			newDelta.second += signY;
+			newRect.x += signX;
+			if (space(newRect))
+				newDelta.first += signX;
+		}
+	}
+	return newDelta;
+}
+
+
+int Room::updateHoriz(const SDL_Rect& rect, const int delta) {
+	assert(delta != 0);
+	SDL_Rect newRect = rect;
+	const int sign = RoomHelper::sign(delta);
+	newRect.x += sign;
+	const int countEnd = std::abs(delta);
+	int count;
+	for (count = 0; count < countEnd; ++count, newRect.x += sign) {
+		if (!space(newRect))
+			break;
+	}
+	return (count * sign);
+}
+
+
+int Room::updateVert(const SDL_Rect& rect, const int delta) {
+	assert(delta != 0);
+	SDL_Rect newRect = rect;
+	const int sign = RoomHelper::sign(delta);
+	newRect.y += sign;
+	const int countEnd = std::abs(delta);
+	int count;
+	for (count = 0; count < countEnd; ++count, newRect.y += sign) {
+		if (!space(newRect))
+			break;
+	}
+	return (count * sign);
+}
+
+
+// use Bresenham's line algorithm with modification that diagonals
+//   take additional step
+//   (as in, going from (0,0) to (1,1) must also visit (0,1) or (1,0))
+IntPair Room::updateDiag(const SDL_Rect& rect, const IntPair& delta) {
+	assert(delta.first != 0);
+	assert(delta.second != 0);
+	if (std::abs(delta.first) >= std::abs(delta.second))
+		return updateDiagX(rect, delta);
+	else
+		return updateDiagY(rect, delta);
+}
+
+
+IntPair Room::updateDiagX(const SDL_Rect& rect, const IntPair& delta) {
+	SDL_Rect newRect = rect;
+	IntPair newDelta{0, 0};
+	const int countEnd = std::abs(delta.first);
+	const int signX = RoomHelper::sign(delta.first);
+	const int signY = RoomHelper::sign(delta.second);
+	newRect.x += signX;
+	int D = ((2 * delta.second * signY) - delta.first * signX);
+	for (int count = 0; count < countEnd; ++count, newRect.x += signX) {
+		if (D > 0) {
+			if (space(newRect))
+				newDelta.first += signX;
+			else
+				break;
+			newRect.y += signY;
+			if (space(newRect))
+				newDelta.second += signY;
+			else
+				break;
+			D += (2 * ((delta.second * signY) - (delta.first * signX)));
+		}
+		else {
+			if (space(newRect))
+				newDelta.first += signX;
+			else
+				break;
+			D += (2 * delta.second * signY);
+		}
+	}
+	return newDelta;
+}
+
+
+IntPair Room::updateDiagY(const SDL_Rect& rect, const IntPair& delta) {
+	SDL_Rect newRect = rect;
+	IntPair newDelta{0, 0};
+	const int countEnd = std::abs(delta.second);
+	const int signX = RoomHelper::sign(delta.first);
+	const int signY = RoomHelper::sign(delta.second);
+	newRect.y += signY;
+	int D = ((2 * delta.first * signX) - delta.second * signY);
+	for (int count = 0; count < countEnd; ++count, newRect.y += signY) {
+		if (D > 0) {
+			if (space(newRect))
+				newDelta.second += signY;
+			else
+				break;
+			newRect.x += signX;
+			if (space(newRect))
+				newDelta.first += signX;
+			else
+				break;
+			D += (2 * ((delta.first * signX) - (delta.second * signY)));
+		}
+		else {
+			if (space(newRect))
+				newDelta.second += signY;
+			else
+				break;
+			D += (2 * delta.first * signX);
+		}
+	}
+	return newDelta;
 }

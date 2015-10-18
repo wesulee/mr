@@ -6,7 +6,7 @@
 #include "room_qtree.h"
 #include "sdl_helper.h"
 #include "shapes.h"
-#include "utility.h"	// Vector2D
+#include "utility.h"
 #include <utility>
 #include <vector>
 
@@ -17,13 +17,13 @@ class SpriteSheet;
 
 struct RoomConnSpriteData {
 	SpriteSheet* ss;
-	std::pair<int, int> szNS;
-	std::pair<int, int> szWE;
+	IntPair szNS;
+	IntPair szWE;
 };
 
 
 struct RoomConnection {
-	std::pair<int, int> pos;
+	IntPair pos;
 	SDL_Texture* tex = nullptr;
 };
 
@@ -65,11 +65,18 @@ public:
 	void draw(Canvas&);
 	void set(rapidjson::Document&);
 	bool space(const int, const int, const int, const int) const;
+	bool space(const SDL_Rect&) const;
 	void updateEntity(GameEntity&, const int, const int) const;
 	void update(GameEntity&, const Vector2D<>&);
 	void notifyClear(void);	// room has been cleared
 private:
 	SDL_Surface* renderBg(const rapidjson::Value&);
+	int updateHoriz(const SDL_Rect&, const int);
+	int updateVert(const SDL_Rect&, const int);
+	IntPair updateStep(const SDL_Rect&, const IntPair&);
+	IntPair updateDiag(const SDL_Rect&, const IntPair&);
+	IntPair updateDiagX(const SDL_Rect&, const IntPair&);
+	IntPair updateDiagY(const SDL_Rect&, const IntPair&);
 
 	RoomStruct* room = nullptr;
 	RoomConnSpriteData sprData;
