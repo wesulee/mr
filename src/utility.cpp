@@ -1,7 +1,7 @@
 #include "utility.h"
 #include <boost/lexical_cast.hpp>
 #include <cctype>	// isdigit
-#include <cstdlib>	// atoi
+#include <cmath>	// ceil
 
 
 bool isBool(const std::string& str) {

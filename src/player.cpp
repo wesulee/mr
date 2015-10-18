@@ -7,6 +7,7 @@
 #include "resource_manager.h"
 #include "room.h"
 #include "save_data.h"
+#include "sdl_header.h"
 #include "sprite_sheet.h"
 #include <cassert>
 #include <cmath>

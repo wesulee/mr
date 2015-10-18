@@ -1,7 +1,7 @@
 #pragma once
 
 #include "entity.h"
-#include "utility.h"
+#include "utility_struct.h"
 
 
 class CreatureManager;

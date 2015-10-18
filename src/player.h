@@ -3,8 +3,6 @@
 #include "entity.h"
 #include "health_bar_player.h"
 #include "multistate_sprite.h"
-#include "sdl_header.h"
-#include "utility.h"
 #include <cstddef>	// size_t
 
 

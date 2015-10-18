@@ -1,7 +1,7 @@
 #include "widget_text_list_view.h"
 #include "canvas.h"
 #include "constants.h"
-#include "utility.h"
+#include "utility.h"	// inRange
 #include "widget_event.h"
 #include "widget_text_item.h"
 #include <algorithm>

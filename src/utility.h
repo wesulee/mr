@@ -2,7 +2,6 @@
 
 #include "constants.h"	// float_type
 #include "sdl_header.h"
-#include <cmath>
 #include <string>
 #include <utility>
 
@@ -74,63 +73,6 @@ bool inRange(const T v, const T lo, const T hi) {
 int msToTicks(const float, const int);
 
 
-struct IntPair {
-	IntPair() = default;
-	IntPair(const IntPair&) = default;
-	IntPair(const int, const int);
-	~IntPair() = default;
-	void set(const int, const int);
-	IntPair& operator=(const IntPair&) = default;
-	IntPair& operator+=(const IntPair&);
-	bool operator==(const IntPair&);
-	bool operator!=(const IntPair&);
-
-	int first;
-	int second;
-};
-
-
-// T should be a floating point type
-template<typename T = Constants::float_type>
-class Vector2D {
-public:
-	typedef T underlying_type;
-
-	Vector2D() = default;
-	Vector2D(const T a, const T b) : x(a), y(b) {}
-	~Vector2D() = default;
-
-	void normalize() {
-		const T len = length();
-		x /= len;
-		y /= len;
-	}
-
-	T length() const {return std::sqrt(x * x + y * y);}
-
-	Vector2D<T>& operator=(const Vector2D<T>& that) {
-		x = that.x;
-		y = that.y;
-		return *this;
-	}
-
-	Vector2D<T>& operator+=(const Vector2D<T>& that) {
-		x += that.x;
-		y += that.y;
-		return *this;
-	}
-
-	Vector2D<T>& operator*=(const T v) {
-		x *= v;
-		y *= v;
-		return *this;
-	}
-
-	T x;
-	T y;
-};
-
-
 class Counter {
 public:
 	Counter();
@@ -153,50 +95,18 @@ private:
 class AlphaFade {
 public:
 	// default to permanent opaque
-	AlphaFade() : alpha(SDL_ALPHA_OPAQUE), alphaEnd(alpha), alphaf(alpha), da(0), counter(0) {}
+	AlphaFade();
 	~AlphaFade() = default;
 	bool update(void);
 	void set(const Uint8, const Uint8, const unsigned int);
-	Uint8 getAlpha() const {return alpha;}
+	Uint8 getAlpha(void) const;
 private:
-	Uint8 alpha;
-	Uint8 alphaEnd;
+	Counter counter;
 	float alphaf;
 	float da;
-	Counter counter;
+	Uint8 alpha;
+	Uint8 alphaEnd;
 };
-
-
-inline
-IntPair::IntPair(const int a, const int b) : first(a), second(b) {
-}
-
-
-inline
-void IntPair::set(const int a, const int b) {
-	first = a;
-	second = b;
-}
-
-
-inline
-IntPair& IntPair::operator+=(const IntPair& o) {
-	first += o.first;
-	second += o.second;
-	return *this;
-}
-
-
-inline
-bool IntPair::operator==(const IntPair& o) {
-	return ((first == o.first) && (second == o.second));
-}
-
-
-inline
-bool IntPair::operator!=(const IntPair& o) {
-	return ((first != o.first) || (second != o.second));
-}
 
 
 inline
@@ -255,4 +165,14 @@ inline
 Counter& Counter::operator++() {
 	++ticks;
 	return *this;
+}
+
+inline
+AlphaFade::AlphaFade() : counter(0), alphaf(alpha), da(0), alpha(SDL_ALPHA_OPAQUE), alphaEnd(alpha) {
+}
+
+
+inline
+Uint8 AlphaFade::getAlpha() const {
+	return alpha;
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utility.h"	// Vector2D
+#include "utility_struct.h"	// Vector2D
 #include <algorithm>	// max
 #include <cassert>
 

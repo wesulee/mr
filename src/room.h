@@ -1,13 +1,11 @@
 #pragma once
 
-#include "constants.h"
 #include "json_reader.h"
 #include "room_inc.h"
 #include "room_qtree.h"
 #include "sdl_helper.h"
 #include "shapes.h"
-#include "utility.h"
-#include <utility>
+#include "utility_struct.h"
 #include <vector>
 
 
@@ -16,9 +14,9 @@ class SpriteSheet;
 
 
 struct RoomConnSpriteData {
-	SpriteSheet* ss;
 	IntPair szNS;
 	IntPair szWE;
+	SpriteSheet* ss;
 };
 
 

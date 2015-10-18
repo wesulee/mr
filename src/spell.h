@@ -2,6 +2,7 @@
 
 #include "attack.h"
 #include "utility.h"
+#include "utility_struct.h"
 
 
 // NOTE: because VFXFade offset is top-left coordinate,

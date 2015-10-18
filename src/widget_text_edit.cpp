@@ -5,7 +5,6 @@
 #include "input_handler.h"
 #include "shapes.h"
 #include "text_renderer.h"
-#include "utility.h"
 #include "widget_data.h"
 #include "widget_event.h"
 #include <algorithm>

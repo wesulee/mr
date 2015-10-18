@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sdl_header.h"		// SDL_Rect
-#include "utility.h"		// IntPair
+#include "utility_struct.h"		// IntPair
 #include <cassert>
 #include <cstddef>
 #include <limits>
