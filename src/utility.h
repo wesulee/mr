@@ -1,9 +1,14 @@
 #pragma once
 
-#include "constants.h"	// float_type
 #include "sdl_header.h"
 #include <string>
-#include <utility>
+
+
+// forward declarations
+
+int msToTicks(const float, const int);
+std::string q(const std::string&);
+void shrinkRect(SDL_Rect&, const int);
 
 
 template<typename T>
@@ -22,55 +27,11 @@ struct EnumClassHash {
 };
 
 
-template<class T, std::size_t I>
-static bool cmpPair(const T& a, const T& b) {
-	return (std::get<I>(a) < std::get<I>(b));
-}
-
-
-inline
-std::string q(const std::string& str) {
-	return (std::string{'\"'} + str + '\"');
-}
-
-
-inline
-void copyDim(SDL_Surface* surf, SDL_Rect& r) {
-	r.w = surf->w;
-	r.h = surf->h;
-}
-
-
-inline
-void shrinkRect(SDL_Rect& r, const int n) {
-	r.x += n;
-	r.y += n;
-	r.w -= n * 2;
-	r.h -= n * 2;
-}
-
-
-// center fg in bg
-inline
-void centerRect(const SDL_Rect& bg, SDL_Rect& fg) {
-	fg.x = bg.x + ((bg.w - fg.w) / 2);
-	fg.y = bg.y + ((bg.h - fg.h) / 2);
-}
-
-
-bool isBool(const std::string&);
-bool string2bool(const std::string&);
-bool isUInt(const std::string&);
-bool isInt(const std::string&);
-bool equivalent(const std::string&, const int);
 // is v in [low, high] (INCLUSIVE)
 template<typename T>
 bool inRange(const T v, const T lo, const T hi) {
 	return ((v >= lo) && (v <= hi));
 }
-
-
-int msToTicks(const float, const int);
 
 
 class Counter {
@@ -107,6 +68,23 @@ private:
 	Uint8 alpha;
 	Uint8 alphaEnd;
 };
+
+
+// definitions
+
+inline
+std::string q(const std::string& str) {
+	return (std::string{'\"'} + str + '\"');
+}
+
+
+inline
+void shrinkRect(SDL_Rect& r, const int n) {
+	r.x += n;
+	r.y += n;
+	r.w -= n * 2;
+	r.h -= n * 2;
+}
 
 
 inline

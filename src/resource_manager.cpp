@@ -2,7 +2,6 @@
 #include "animated_sprite.h"
 #include "color.h"
 #include "constants.h"
-#include "data_validation.h"
 #include "entity.h"
 #include "entity_resource.h"
 #include "exception.h"
