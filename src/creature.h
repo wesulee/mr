@@ -19,7 +19,6 @@ public:
 	void damage(const int) override;
 	HealthBar*& getHealthBar(void);
 protected:
-	Vector2D<float> dpos;
 	HealthBar* healthBar = nullptr;
 };
 

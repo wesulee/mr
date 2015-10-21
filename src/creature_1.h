@@ -29,6 +29,7 @@ private:
 	SDL_Rect attackRect;
 	UniformAnimatedSprite sprMovL;
 	UniformAnimatedSprite sprMovR;
+	Vector2D<> dpos;
 	Counter counter;
 	AnimatedSprite* curSpr = nullptr;
 	KillableGameEntity* target = nullptr;
