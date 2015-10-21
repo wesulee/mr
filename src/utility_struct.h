@@ -1,6 +1,6 @@
 #pragma once
 
-#include "constants.h"
+#include "constants.h"	// float_type
 #include <cmath>	// sqrt
 
 
@@ -33,9 +33,13 @@ public:
 	T length(void) const;
 	Vector2D<T>& operator=(const Vector2D<T>&);
 	Vector2D<T>& operator+=(const Vector2D<T>&);
+	Vector2D<T>& operator-=(const Vector2D<T>&);
 	Vector2D<T>& operator*=(const T);
+	Vector2D<T>& operator/=(const T);
 	Vector2D<T> operator+(const Vector2D<T>&) const;
 	Vector2D<T> operator-(const Vector2D<T>&) const;
+	Vector2D<T> operator*(const T) const;
+	Vector2D<T> operator/(const T) const;
 
 	T x;
 	T y;
@@ -110,9 +114,25 @@ Vector2D<T>& Vector2D<T>::operator+=(const Vector2D<T>& that) {
 
 
 template<class T>
+Vector2D<T>& Vector2D<T>::operator-=(const Vector2D<T>& that) {
+	x -= that.x;
+	y -= that.y;
+	return *this;
+}
+
+
+template<class T>
 Vector2D<T>& Vector2D<T>::operator*=(const T v) {
 	x *= v;
 	y *= v;
+	return *this;
+}
+
+
+template<class T>
+Vector2D<T>& Vector2D<T>::operator/=(const T v) {
+	x /= v;
+	y /= v;
 	return *this;
 }
 
@@ -126,4 +146,16 @@ Vector2D<T> Vector2D<T>::operator+(const Vector2D<T>& that) const {
 template<class T>
 Vector2D<T> Vector2D<T>::operator-(const Vector2D<T>& that) const {
 	return Vector2D<T>{x - that.x, y - that.y};
+}
+
+
+template<class T>
+Vector2D<T> Vector2D<T>::operator*(const T v) const {
+	return Vector2D<T>{x * v, y * v};
+}
+
+
+template<class T>
+Vector2D<T> Vector2D<T>::operator/(const T v) const {
+	return Vector2D<T>{x / v, y / v};
 }
