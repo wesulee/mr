@@ -18,12 +18,12 @@ public:
 	virtual void chargeTick(void) = 0;
 	void setPosX(const int);
 	void setPosY(const int);
-	void setEndPos(const int, const int, const float);
+	void setEndPos(const int, const int, const Constants::float_type);
 	virtual int getRadius(void) const = 0;
 	static void setFadeTicks(const unsigned int);
 protected:
-	Vector2D<float> pos;
-	Vector2D<float> dpos;	// position delta
+	Vector2D<> pos;
+	Vector2D<> dpos;
 	Counter counter;
 	VFXFade* fade;
 	static unsigned int fadeTicks;

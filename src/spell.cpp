@@ -22,12 +22,8 @@ Spell::~Spell() {
 
 bool Spell::update() {
 	if (counter.finished()) {
-		// pos should end at integers.
-		// Make sure that when pos is casted to int, it is correct.
-		if (static_cast<float>(static_cast<int>(pos.x)) - pos.x < 0)
-			pos.x += 0.1f;
-		if (static_cast<float>(static_cast<int>(pos.y)) - pos.y < 0)
-			pos.y += 0.1f;
+		pos.x = correctFloat(pos.x);
+		pos.y = correctFloat(pos.y);
 		return true;
 	}
 	else {
@@ -39,26 +35,26 @@ bool Spell::update() {
 
 
 void Spell::setPosX(const int x) {
-	pos.x = x;
+	pos.x = static_cast<Constants::float_type>(x);
 }
 
 
 void Spell::setPosY(const int y) {
-	pos.y = y;
+	pos.y = static_cast<Constants::float_type>(y);
 }
 
 
 // speed is pixels per second
-void Spell::setEndPos(const int x, const int y, const float speed) {
+void Spell::setEndPos(const int x, const int y, const Constants::float_type speed) {
 	fade->setOffset(x, y);	// needs to be updated in subclass
-	const float dist = std::sqrt(
-		square(static_cast<float>(x) - pos.x)
-		+ square(static_cast<float>(y) - pos.y)
+	const Constants::float_type dist = std::sqrt(
+		square(static_cast<Constants::float_type>(x) - pos.x)
+		+ square(static_cast<Constants::float_type>(y) - pos.y)
 	);
-	const float ms = dist / speed * 1000;
+	const Constants::float_type ms = dist / speed * 1000;
 	const int ticks = static_cast<int>(std::ceil(ms / Constants::frameDurationFloat));
-	dpos.x = (static_cast<float>(x) - pos.x) / ticks;
-	dpos.y = (static_cast<float>(y) - pos.y) / ticks;
+	dpos.x = (static_cast<Constants::float_type>(x) - pos.x) / ticks;
+	dpos.y = (static_cast<Constants::float_type>(y) - pos.y) / ticks;
 	counter.setMaxTicks(static_cast<unsigned int>(ticks));
 	counter.reset();
 }

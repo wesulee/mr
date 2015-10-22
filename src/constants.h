@@ -12,6 +12,7 @@ namespace Constants {
 	constexpr int windowHeight = 324;
 	constexpr int roomWidth = 32 * 18;
 	constexpr int roomHeight = 32 * 9;
+	constexpr float floatInc = 0.01;
 	constexpr int targetFPS = 60;
 	constexpr int frameDuration = 1000 / targetFPS;
 	constexpr float frameDurationFloat = 1000.0f / targetFPS;

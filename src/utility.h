@@ -1,6 +1,9 @@
 #pragma once
 
+#include "constants.h"
 #include "sdl_header.h"
+#include <cassert>
+#include <cmath>
 #include <string>
 
 
@@ -9,6 +12,7 @@
 int msToTicks(const float, const int);
 std::string q(const std::string&);
 void shrinkRect(SDL_Rect&, const int);
+Constants::float_type correctFloat(const Constants::float_type);
 
 
 template<typename T>
@@ -84,6 +88,20 @@ void shrinkRect(SDL_Rect& r, const int n) {
 	r.y += n;
 	r.w -= n * 2;
 	r.h -= n * 2;
+}
+
+
+// values that are just off from whole number when casted to int are corrected
+// returns argument if no correction made
+inline
+Constants::float_type correctFloat(const Constants::float_type v) {
+	assert(!std::isnan(v));
+	Constants::float_type intPart;	// dummy
+	const Constants::float_type fracPart = std::modf(v, &intPart);
+	if (std::abs(fracPart) >= (static_cast<Constants::float_type>(1) - Constants::floatInc)) {
+		return (v + (fracPart * static_cast<Constants::float_type>(1.1)));
+	}
+	return v;
 }
 
 
