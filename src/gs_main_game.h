@@ -18,15 +18,15 @@ class MainGame : public GameState {
 public:
 	MainGame(std::shared_ptr<StateContext>);
 	~MainGame();
-	void update(void) override;
+	void update(const Constants::float_type) override;
 	void draw(Canvas&) override;
 	void entered(void) override;
 	void leaving(const StateType, std::shared_ptr<StateContext>) override;
 	void obscuring(const StateType, std::shared_ptr<StateContext>) override;
 	void revealed(std::shared_ptr<StateContext>) override;
 private:
-	void updateRunning(void);
-	void updateCleared(void);
+	void updateRunning(const Constants::float_type);
+	void updateCleared(const Constants::float_type);
 	void drawRunning(Canvas&);
 	void drawCleared(Canvas&);
 	void obscureToMenu(std::shared_ptr<StateContext>);
@@ -50,6 +50,6 @@ private:
 	MainGameObjects objects;
 	SDL_Keycode playerDirKeys[4];	// N, E, S, W
 	int playerDirection = PLAYER_DIR_NONE;
-	void (self_type::*updateFunc)(void);
+	void (self_type::*updateFunc)(const Constants::float_type);
 	void (self_type::*drawFunc)(Canvas&);
 };

@@ -1,7 +1,6 @@
 #include "spell_manager.h"
 #include "attack_manager.h"
 #include "canvas.h"
-#include "constants.h"
 #include "game_data.h"
 #include "image.h"
 #include "input_handler.h"
@@ -17,12 +16,10 @@
 
 
 SpellManager::SpellManager() {
-	Spell::setFadeTicks(static_cast<unsigned int>(msToTicks(Constants::frameDurationFloat, Constants::SMFadeDurMS)));
-
 	Color colBg = COLOR_BLACK;
 	Color colBasic = COLOR_YELLOW;
 	SDL_Surface* surfBasic = ShapeRenderer::circle(colBasic, colBg, Constants::SPELL_RENDER_RADIUS);
-	SDL_SetColorKey(surfBasic, SDL_TRUE, SDL::mapRGB(surfBasic->format, colBg));
+	SDL::setColorKey(surfBasic, colBg);
 	imgBasic = std::make_shared<Image>(surfBasic);
 	SDL::freeNull(surfBasic);
 	SpellBasic::setImage(imgBasic.get());
@@ -39,9 +36,9 @@ SpellManager::~SpellManager() {
 }
 
 
-void SpellManager::update() {
+void SpellManager::update(const Constants::float_type dt) {
 	if (activeSpell)
-		spell->chargeTick();
+		spell->chargeTick(dt);
 }
 
 
@@ -49,8 +46,9 @@ void SpellManager::update() {
 // drawing Player and Player having no knowledge of how to draw spells,
 // Player must request SpellManager to draw active Spell
 void SpellManager::drawPlayerSpell(Canvas& can) {
+	if (!activeSpell)
+		return;
 	assert(player != nullptr);
-	if (!activeSpell) return;
 	assert(spell != nullptr);
 	assert(spellImg);
 	updateSpellPos();
@@ -119,6 +117,6 @@ void SpellManager::updateSpellPos() {
 
 Spell* SpellManager::newSpellBasic() {
 	SpellBasic* s = new SpellBasic;
-	s->init(1, 15, 0.3);	//! upgrades not implemented
+	s->init(1, 15, 18);	//! upgrades not implemented
 	return s;
 }

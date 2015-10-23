@@ -12,16 +12,15 @@ class SpellBasic : public Spell {
 public:
 	SpellBasic();
 	~SpellBasic();
-	bool update(void) override;
+	bool update(const Constants::float_type) override;
 	void draw(Canvas&) override;
-	void init(const int, const int, const float);
-	void chargeTick(void) override;
+	void init(const int, const int, const Constants::float_type);
+	void chargeTick(const Constants::float_type) override;
 	int getRadius(void) const override;
 	static void setImage(Image*);
 private:
-	static Image* img;
-	int radius;
-	float radiusf;
+	Constants::float_type radius;
+	Constants::float_type dradius;	// radius growth per second
 	int radiusLimit;
-	float dr;	// change in radius per update
+	static Image* img;
 };

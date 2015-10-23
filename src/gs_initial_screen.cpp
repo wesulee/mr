@@ -1,7 +1,6 @@
 #include "gs_initial_screen.h"
 #include "canvas.h"
 #include "console.h"
-#include "constants.h"
 #include "exception.h"
 #include "font.h"
 #include "game_data.h"
@@ -97,11 +96,21 @@ InitialScreen::~InitialScreen() {
 }
 
 
-void InitialScreen::update() {
+void InitialScreen::update(const Constants::float_type) {
 	if (counter.finished()) {
 		GameData::instance().stateManager->switchTo(StateType::MENU);
 		return;
 	}
+}
+
+
+void InitialScreen::draw(Canvas& can) {
+	can.setColor(InitialScreenSettings::colBg, SDL_ALPHA_OPAQUE);
+	can.clearScreen();
+	wArea.draw(can);
+
+	if (counter.finished())
+		return;
 	switch (counter.getTicks()) {
 	case 0:
 		checkFolderExists(GameData::instance().dataPath);
@@ -127,13 +136,6 @@ void InitialScreen::update() {
 	}
 	counter.increment();
 	bar->setValue(bar->getValue() + 1);
-}
-
-
-void InitialScreen::draw(Canvas& can) {
-	can.setColor(InitialScreenSettings::colBg, SDL_ALPHA_OPAQUE);
-	can.clearScreen();
-	wArea.draw(can);
 }
 
 

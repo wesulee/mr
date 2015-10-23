@@ -1,6 +1,5 @@
 #include "gs_dialog.h"
 #include "canvas.h"
-#include "constants.h"
 #include "exception.h"
 #include "game_data.h"
 #include "input_handler.h"
@@ -37,7 +36,7 @@ DialogState::~DialogState() {
 }
 
 
-void DialogState::update() {
+void DialogState::update(const Constants::float_type) {
 	if (dialog->done())
 		GameData::instance().stateManager->pop();
 }

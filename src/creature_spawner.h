@@ -12,14 +12,14 @@ public:
 	virtual ~CreatureSpawner() {}
 	virtual void spawn(CreatureManager*, const int, const int) = 0;
 protected:
-	void updateTick(void);
+	void updateTick(const Constants::float_type);
 private:
 	void setSpawnCounter(void);
 protected:
 	CreatureManager* cm = nullptr;
 	std::uniform_int_distribution<int> distSpawnMS;		// duration (ms) between spawns
 	std::uniform_int_distribution<int> distSpawnN;		// number spawned
-	Counter counter;
+	Constants::float_type timeRem = 0;
 	CreatureType thisType = CreatureType::NONE;
 	CreatureType spawnType = CreatureType::NONE;
 };

@@ -17,7 +17,7 @@ class DialogState : public GameState {
 public:
 	DialogState(std::shared_ptr<StateContext>);
 	~DialogState();
-	void update(void) override;
+	void update(const Constants::float_type) override;
 	void draw(Canvas&) override;
 	void entered(void) override;
 	void leaving(const StateType, std::shared_ptr<StateContext>) override;

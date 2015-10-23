@@ -20,9 +20,8 @@ void UniformAnimatedSpriteSource::setSize(const int w, const int h) {
 }
 
 
-// tickCount is number of ticks per frame
-void UniformAnimatedSpriteSource::setTicks(const unsigned int ticks) {
-	ticksMax = ticks;
+void UniformAnimatedSpriteSource::setDuration(const Constants::float_type time) {
+	frameDur = time;
 }
 
 
@@ -32,11 +31,19 @@ void UniformAnimatedSpriteSource::add(const int x, const int y) {
 }
 
 
-void UniformAnimatedSpriteSource::update(unsigned int& ticks, std::size_t& index) const {
-	if (++ticks > ticksMax) {
-		ticks = 0;
-		if (++index >= frames.size())
-			index = 0;
+// frameTimeRem is the remaining time of the current frame
+void UniformAnimatedSpriteSource::update(const Constants::float_type dt, Constants::float_type& frameTimeRem,
+std::size_t& index) const {
+	if (dt > frameTimeRem) {
+		std::size_t indexDelta = (static_cast<std::size_t>((dt - frameTimeRem) / frameDur) + 1);
+		index = ((index + indexDelta) % frames.size());
+		frameTimeRem = (
+			(frameDur * static_cast<Constants::float_type>(indexDelta))
+			- (dt - frameTimeRem)
+		);
+	}
+	else {
+		frameTimeRem -= dt;
 	}
 }
 
@@ -63,14 +70,14 @@ int UniformAnimatedSpriteSource::getDrawHeight() const {
 }
 
 
-void UniformAnimatedSprite::update() {
-	src->update(ticks, index);
+void UniformAnimatedSprite::update(const Constants::float_type dt) {
+	src->update(dt, frameTimeRem, index);
 }
 
 
 void UniformAnimatedSprite::reset() {
-	ticks = 0;
 	index = 0;
+	frameTimeRem = 0;
 }
 
 

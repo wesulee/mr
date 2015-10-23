@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"
 #include <list>
 
 
@@ -14,7 +15,7 @@ class VFXManager {
 public:
 	VFXManager() = default;
 	~VFXManager();
-	void update(void);
+	void update(const Constants::float_type);
 	void draw(Canvas&);
 	void add(Entity*);
 private:

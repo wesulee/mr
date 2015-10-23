@@ -1,6 +1,5 @@
 #include "gs_save_menu.h"
 #include "canvas.h"
-#include "constants.h"
 #include "dialog_data.h"
 #include "game_data.h"
 #include "input_handler.h"
@@ -96,7 +95,7 @@ SaveMenu::~SaveMenu() {
 }
 
 
-void SaveMenu::update() {
+void SaveMenu::update(const Constants::float_type) {
 }
 
 

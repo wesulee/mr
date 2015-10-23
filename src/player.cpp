@@ -1,6 +1,5 @@
 #include "player.h"
 #include "canvas.h"
-#include "constants.h"
 #include "entity_resource.h"
 #include "game_data.h"
 #include "main_game_objects.h"
@@ -35,7 +34,7 @@ PlayerResource::~PlayerResource() {
 // in order to draw Player, must add Sprites through MultistateSprite::addState()
 Player::Player()
 : KillableGameEntity(Constants::PHealth), healthBar(this, Constants::PHealth)
-, speed(Constants::PBaseMovSpeed * Constants::frameDurationFloat / 1000) {
+, speed(Constants::PBaseMovSpeed) {
 	entityPos.x = 200;	// default values
 	entityPos.y = 200;
 	EntityResource* res = GameData::instance().resources->getEntity(this, EntityResourceID::PLAYER);
@@ -50,39 +49,40 @@ Player::~Player() {
 }
 
 
-bool Player::update() {
+bool Player::update(const Constants::float_type dt) {
+	const Constants::float_type delta = speed * dt;
 	if (moving) {
 		switch (direction) {
 		case PlayerDirection::NONE:
 			break;
 		case PlayerDirection::N:
-			move(0, -speed);
+			move(0, -delta);
 			break;
 		case PlayerDirection::E:
-			move(speed, 0);
+			move(delta, 0);
 			ms.setState(SPR_STATE_RIGHT);
 			break;
 		case PlayerDirection::S:
-			move(0, speed);
+			move(0, delta);
 			break;
 		case PlayerDirection::W:
-			move(-speed, 0);
+			move(-delta, 0);
 			ms.setState(SPR_STATE_LEFT);
 			break;
 		case PlayerDirection::NE:
-			move(speed, -speed);
+			move(delta, -delta);
 			ms.setState(SPR_STATE_RIGHT);
 			break;
 		case PlayerDirection::SE:
-			move(speed, speed);
+			move(delta, delta);
 			ms.setState(SPR_STATE_RIGHT);
 			break;
 		case PlayerDirection::SW:
-			move(-speed, speed);
+			move(-delta, delta);
 			ms.setState(SPR_STATE_LEFT);
 			break;
 		case PlayerDirection::NW:
-			move(-speed, -speed);
+			move(-delta, -delta);
 			ms.setState(SPR_STATE_LEFT);
 			break;
 		default:
@@ -192,6 +192,6 @@ void Player::getSaveData(const SaveData& data) {
 }
 
 
-void Player::move(const float dx, const float dy) {
+void Player::move(const Constants::float_type dx, const Constants::float_type dy) {
 	 GameData::instance().mgo->getRoom().update(*this, Vector2D<>{dx, dy});
 }

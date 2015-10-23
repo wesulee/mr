@@ -9,9 +9,9 @@ VFXManager::~VFXManager() {
 }
 
 
-void VFXManager::update() {
+void VFXManager::update(const Constants::float_type dt) {
 	for (auto it = list.begin(); it != list.end();) {
-		if ((**it).update()) {
+		if ((**it).update(dt)) {
 			delete *it;
 			it = list.erase(it);
 		}

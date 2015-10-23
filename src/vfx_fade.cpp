@@ -4,8 +4,8 @@
 #include <cassert>
 
 
-bool VFXFade::update() {
-	return af.update();
+bool VFXFade::update(const Constants::float_type dt) {
+	return af.update(dt);
 }
 
 
@@ -27,8 +27,8 @@ void VFXFade::setImage(Image* image, const int width, const int height) {
 }
 
 
-void VFXFade::setFade(const Uint8 start, const Uint8 end, const int unsigned ticks) {
-	af.set(start, end, ticks);
+void VFXFade::setFade(const Constants::float_type dur, const Uint8 start, const Uint8 end) {
+	af.set(dur, start, end);
 }
 
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "constants.h"
+
 
 class Canvas;
 class Entity;
@@ -15,7 +17,8 @@ class Attack {
 public:
 	Attack() = default;
 	virtual ~Attack() {/* do nothing */}
-	virtual bool update(void) = 0;	// return true to notify that attack can be deleted
+	// return true to notify that attack can be deleted
+	virtual bool update(const Constants::float_type) = 0;
 	virtual void draw(Canvas&) = 0;
 	void setSource(Entity* e) {source = e;}
 	const Entity* getSource() const {return source;}

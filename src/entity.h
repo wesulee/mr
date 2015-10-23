@@ -1,7 +1,8 @@
 #pragma once
 
+#include "constants.h"		// float_type
 #include "utility_struct.h"	// Vector2D
-#include <algorithm>	// max
+#include <algorithm>		// max
 #include <cassert>
 
 
@@ -20,7 +21,7 @@ class Entity {
 public:
 	Entity() {}
 	virtual ~Entity() {}
-	virtual bool update(void) = 0;
+	virtual bool update(const Constants::float_type) = 0;
 	virtual void draw(Canvas&) = 0;
 	virtual EntityResource* loadResource(void);
 	virtual void unloadResource(EntityResource*);

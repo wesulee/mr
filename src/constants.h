@@ -13,9 +13,6 @@ namespace Constants {
 	constexpr int roomWidth = 32 * 18;
 	constexpr int roomHeight = 32 * 9;
 	constexpr float floatInc = 0.01;
-	constexpr int targetFPS = 60;
-	constexpr int frameDuration = 1000 / targetFPS;
-	constexpr float frameDurationFloat = 1000.0f / targetFPS;
 	constexpr char loggerFName[] = "errors.txt";
 	constexpr char iniFileName[] = "mr.ini";
 	constexpr char saveFileExt[] = "txt";
@@ -46,7 +43,8 @@ namespace Constants {
 	// SpellManager
 	constexpr float SMTravelSpeed = 500.0f;	// pixels per second spell travel
 	constexpr int SMPlayerOffset = -8;		// drawing offset of active Spell
-	constexpr int SMFadeDurMS = 130;		// fadeout duration
+	constexpr float SMFadeDur = 0.130;		// fadeout duration
+	constexpr float SMFadeRadMult = 1.6;	// fadeout radius multiplier
 	constexpr int SPELL_RENDER_RADIUS = 32;
 	// Widget
 	// Special argument for Widget::_requestResize(), lets parent know that widget

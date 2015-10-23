@@ -31,11 +31,11 @@ CreatureManager::~CreatureManager() {
 }
 
 
-void CreatureManager::update() {
+void CreatureManager::update(const Constants::float_type dt) {
 	if (creatures.empty())
 		notifyEmpty();
 	for (auto it = creatures.begin(); it != creatures.end();) {
-		if (((**it).getHealth() <= 0) || (**it).update()) {
+		if (((**it).getHealth() <= 0) || (**it).update(dt)) {
 			del(*it);
 			it = creatures.erase(it);
 		}

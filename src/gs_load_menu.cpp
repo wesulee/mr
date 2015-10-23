@@ -1,6 +1,5 @@
 #include "gs_load_menu.h"
 #include "canvas.h"
-#include "constants.h"
 #include "dialog_data.h"
 #include "event_manager.h"
 #include "game_data.h"
@@ -49,7 +48,7 @@ LoadMenu::~LoadMenu() {
 }
 
 
-void LoadMenu::update() {
+void LoadMenu::update(const Constants::float_type) {
 }
 
 

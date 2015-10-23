@@ -554,7 +554,7 @@ AnimatedSpriteSource* ResourceManager::loadAnimationUni(const rapidjson::Value& 
 	ImageResource* const ir = getImage(src->getImageName(), false, true);	// get texture
 	assert(ir->tex != nullptr);
 	src->setTexture(ir->tex);
-	src->setTicks(data["dur"].GetUint());
+	src->setDuration(static_cast<Constants::float_type>(data["dur"].GetUint()) / 1000);
 	src->setSize(data["w"].GetInt(), data["h"].GetInt());
 	x = data["x"].GetInt();
 	y = data["y"].GetInt();

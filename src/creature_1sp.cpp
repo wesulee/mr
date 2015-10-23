@@ -15,8 +15,8 @@ void Creature1Sp::spawn(CreatureManager* man, const int x, const int y) {
 }
 
 
-bool Creature1Sp::update() {
-	updateTick();
+bool Creature1Sp::update(const Constants::float_type dt) {
+	updateTick(dt);
 	return false;
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"
 #include "sdl_header.h"
 #include <list>
 
@@ -16,7 +17,7 @@ class AttackManager {
 public:
 	AttackManager() = default;
 	~AttackManager();
-	void update(void);
+	void update(const Constants::float_type);
 	void draw(Canvas&);
 	void add(Attack*);
 	bool procRect(const Attack*, const SDL_Rect&, const int);

@@ -13,7 +13,7 @@ AttackRect::AttackRect(const SDL_Rect& r, const int d) : rect(r), damage(d) {
 }
 
 
-bool AttackRect::update() {
+bool AttackRect::update(const Constants::float_type) {
 	GameData::instance().mgo->getAttackManager().procRect(this, rect, damage);
 	return true;
 }

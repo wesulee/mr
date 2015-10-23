@@ -63,8 +63,11 @@ MainGame::~MainGame() {
 }
 
 
-void MainGame::update() {
-	(this->*updateFunc)();
+void MainGame::update(const Constants::float_type dt) {
+	player.setDirection(playerDirection);
+	player.update(dt);
+	sm.update(dt);
+	(this->*updateFunc)(dt);
 }
 
 
@@ -105,22 +108,16 @@ void MainGame::revealed(std::shared_ptr<StateContext>) {
 }
 
 
-void MainGame::updateRunning() {
-	player.setDirection(playerDirection);
-	player.update();
-	sm.update();
-	cm.update();
-	am.update();
-	vfxm.update();
+void MainGame::updateRunning(const Constants::float_type dt) {
+	cm.update(dt);
+	am.update(dt);
+	vfxm.update(dt);
 }
 
 
-void MainGame::updateCleared() {
-	player.setDirection(playerDirection);
-	player.update();
-	sm.update();
-	am.update();
-	vfxm.update();
+void MainGame::updateCleared(const Constants::float_type dt) {
+	am.update(dt);
+	vfxm.update(dt);
 }
 
 

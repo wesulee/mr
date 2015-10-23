@@ -1,6 +1,5 @@
 #include "gs_game_menu.h"
 #include "canvas.h"
-#include "constants.h"
 #include "font.h"
 #include "game_data.h"
 #include "image.h"
@@ -85,7 +84,7 @@ GameMenu::~GameMenu() {
 }
 
 
-void GameMenu::update() {
+void GameMenu::update(const Constants::float_type) {
 }
 
 

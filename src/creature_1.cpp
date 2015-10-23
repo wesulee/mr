@@ -2,7 +2,6 @@
 #include "attack_manager.h"
 #include "attack_rect.h"
 #include "canvas.h"
-#include "constants.h"
 #include "creature_manager.h"
 #include "game_data.h"
 #include "main_game_objects.h"
@@ -17,7 +16,7 @@ namespace Creature1Settings {
 	// Minimum square distance from self to target to initiate attack.
 	constexpr float minDistAttack2 = 7 * 7;
 	constexpr float speed = 50;	// pixels per second, includes both axes
-	constexpr unsigned int refreshTargetDirection = 5;
+	constexpr Constants::float_type refreshTargetDirection = 0.1;
 	constexpr int attackWidth = 10;
 	constexpr int attackHeight = 20;
 }
@@ -48,14 +47,14 @@ void Creature1::spawn(CreatureManager* cm, const int x, const int y) {
 }
 
 
-bool Creature1::update() {
+bool Creature1::update(const Constants::float_type dt) {
 	using namespace Creature1Settings;
-	counter.increment();
+	time -= dt;
 	switch (state) {
 	case CreatureState::NONE:
 		break;
 	case CreatureState::MOVING:
-		movingUpdate();
+		movingUpdate(dt);
 		break;
 	case CreatureState::ATTACKING:
 		if (++attackTicks >= maxAttackTicks) {
@@ -124,17 +123,16 @@ void Creature1::updateTargetPos() {
 		curSpr = &sprMovL;
 		targetX = tRect.x + tRect.w;
 	}
-	// update direction vector
-	dpos.x = targetX - entityPos.x;
-	dpos.y = tRect.y - entityPos.y;
-	dpos.normalize();
-	dpos *= (speed / 1000 * Constants::frameDurationFloat);
+	// update velocity
+	vel.x = (targetX - entityPos.x);
+	vel.y = (tRect.y - entityPos.y);
+	vel *= (speed / vel.length());
 }
 
 
-void Creature1::updatePosition() {
-	curSpr->update();
-	GameData::instance().mgo->getRoom().update(*this, dpos);
+void Creature1::updatePosition(const Constants::float_type dt) {
+	curSpr->update(dt);
+	GameData::instance().mgo->getRoom().update(*this, vel * dt);
 }
 
 
@@ -144,7 +142,7 @@ bool Creature1::facingLeft() const {
 }
 
 
-void Creature1::movingUpdate() {
+void Creature1::movingUpdate(const Constants::float_type dt) {
 	using namespace Creature1Settings;
 	if (shouldAttack()) {
 		attackTicks = 0;
@@ -167,8 +165,10 @@ void Creature1::movingUpdate() {
 		GameData::instance().mgo->getAttackManager().add(ar);
 	}
 	else {
-		updatePosition();
-		if (counter.getTicks() % refreshTargetDirection == 0)
+		updatePosition(dt);
+		if (time <= 0) {
+			time = refreshTargetDirection;
 			updateTargetPos();
+		}
 	}
 }

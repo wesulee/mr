@@ -15,10 +15,9 @@ const int msLo, const int msHi, const int nLo, const int nHi)
 }
 
 
-void CreatureSpawner::updateTick() {
-	counter.increment();
-	if (counter.finished()) {
-		counter.reset();
+void CreatureSpawner::updateTick(const Constants::float_type dt) {
+	timeRem -= dt;
+	if (timeRem <= 0) {
 		setSpawnCounter();
 		const int spawnCount = distSpawnN(GameData::instance().randGen);
 		for (int i = 0; i < spawnCount; ++i) {
@@ -35,5 +34,5 @@ void CreatureSpawner::updateTick() {
 
 void CreatureSpawner::setSpawnCounter() {
 	const int timeMS = distSpawnMS(GameData::instance().randGen);
-	counter.setMaxTicks(static_cast<unsigned int>(timeMS / Constants::frameDurationFloat));
+	timeRem = (static_cast<Constants::float_type>(timeMS) / 1000);
 }

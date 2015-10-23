@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"	// float_type
 #include "event_callback.h"
 #include "state_type.h"
 #include <memory>
@@ -16,7 +17,8 @@ class GameState {
 public:
 	GameState(const StateType, std::shared_ptr<StateContext>);
 	virtual ~GameState() {}
-	virtual void update(void) = 0;
+	// time delta in seconds
+	virtual void update(const Constants::float_type) = 0;
 	virtual void draw(Canvas&) = 0;
 	virtual StateType getType() const final;
 	// called once, after created and becomes primary state

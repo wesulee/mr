@@ -39,7 +39,7 @@ class Player : public KillableGameEntity {
 public:
 	Player();
 	~Player();
-	bool update(void) override;
+	bool update(const Constants::float_type) override;
 	void draw(Canvas&) override;
 	// Entity methods
 	EntityResource* loadResource(void) override;
@@ -51,11 +51,11 @@ public:
 	void setSaveData(SaveData&) const;
 	void getSaveData(const SaveData&);
 private:
-	void move(const float, const float);
+	void move(const Constants::float_type, const Constants::float_type);
 
 	PlayerHealthBar healthBar;
 	MultistateSprite ms;
 	PlayerDirection direction = PlayerDirection::NONE;
-	float speed;
+	Constants::float_type speed;	// max dist traveled in one direction per second
 	bool moving = false;
 };

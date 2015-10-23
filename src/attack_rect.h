@@ -9,7 +9,7 @@ public:
 	AttackRect();
 	AttackRect(const SDL_Rect&, const int);
 	~AttackRect() = default;
-	bool update() override;
+	bool update(const Constants::float_type) override;
 	void draw(Canvas&) override;
 	void setRect(const SDL_Rect&);
 	void setDamage(const int);

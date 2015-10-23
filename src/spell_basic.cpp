@@ -13,7 +13,7 @@
 Image* SpellBasic::img = nullptr;
 
 
-SpellBasic::SpellBasic() : radius(1), radiusf(radius), radiusLimit(radiusf), dr(0.0) {
+SpellBasic::SpellBasic() : radius(5), dradius(0), radiusLimit(5) {
 }
 
 
@@ -22,11 +22,9 @@ SpellBasic::~SpellBasic() {
 }
 
 
-bool SpellBasic::update() {
-	radiusf += dr;
-	radius = static_cast<int>(radiusf);
-	if (Spell::update()) {
-		const int fadeRad = static_cast<int>(radius * Spell::fadeRadMult);
+bool SpellBasic::update(const Constants::float_type dt) {
+	if (Spell::update(dt)) {
+		const int fadeRad = static_cast<int>(radius * Constants::SMFadeRadMult);
 		fade->setImage(img, fadeRad * 2, fadeRad * 2);
 		// center the fade
 		fade->setOffset(
@@ -40,51 +38,48 @@ bool SpellBasic::update() {
 			Circle{
 				static_cast<int>(pos.x),
 				static_cast<int>(pos.y),
-				radius
+				getRadius()
 			},
-			static_cast<int>(15.0f * radiusf / static_cast<float>(radiusLimit))	//! upgrades not implemented
+			static_cast<int>(15.0f * radius / static_cast<Constants::float_type>(radiusLimit))	//! upgrades not implemented
 		);
 		return true;
 	}
-	else
-		return false;
+	return false;
 }
 
 
 void SpellBasic::draw(Canvas& can) {
 	assert(img != nullptr);
-	img->setWidth(radius * 2);
-	img->setHeight(radius * 2);
-	const int x = static_cast<int>(pos.x) - radius;
-	const int y = static_cast<int>(pos.y) - radius;
-	can.draw(*img, x, y);
+	const int radiusInt = getRadius();
+	img->setWidth(radiusInt * 2);
+	img->setHeight(radiusInt * 2);
+	can.draw(*img, static_cast<int>(pos.x) - radiusInt, static_cast<int>(pos.y) - radiusInt);
 }
 
 
-// initial radius, maximum radius size, radius growth per tick
-void SpellBasic::init(const int rad, const int radLim, const float drad) {
-	assert(rad >= 0);
-	assert(radLim >= 0);
+// initial radius, maximum radius size, radius growth per second
+void SpellBasic::init(const int radInit, const int radLim, const Constants::float_type drad) {
+	assert(radInit >= 0);
+	assert(radLim >= radInit);
 	assert(drad >= 0);
-	radius = rad;
-	radiusf = radius;
+	radius = static_cast<Constants::float_type>(radInit);
+	dradius = drad;
 	radiusLimit = radLim;
-	dr = drad;
 }
 
 
-void SpellBasic::chargeTick() {
-	if (radius != radiusLimit) {
-		radiusf += dr;
-		radius = static_cast<int>(radiusf);
-		if (radius > radiusLimit)
+void SpellBasic::chargeTick(const Constants::float_type dt) {
+	if (static_cast<int>(radius) < radiusLimit) {
+		radius += (dradius * dt);
+		const int radiusInt = static_cast<int>(radius);
+		if (radiusInt > radiusLimit)
 			radius = radiusLimit;
 	}
 }
 
 
 int SpellBasic::getRadius() const {
-	return radius;
+	return static_cast<int>(radius);
 }
 
 

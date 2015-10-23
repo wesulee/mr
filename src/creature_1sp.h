@@ -10,7 +10,7 @@ public:
 	Creature1Sp();
 	~Creature1Sp() = default;
 	void spawn(CreatureManager*, const int, const int) override;
-	bool update(void) override;
+	bool update(const Constants::float_type) override;
 	void draw(Canvas&) override;
 	SDL_Rect getBounds(void) const override;
 private:

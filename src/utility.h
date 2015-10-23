@@ -59,18 +59,15 @@ private:
 
 class AlphaFade {
 public:
-	// default to permanent opaque
-	AlphaFade();
+	AlphaFade() = default;
 	~AlphaFade() = default;
-	bool update(void);
-	void set(const Uint8, const Uint8, const unsigned int);
+	bool update(const Constants::float_type);
+	void set(const Constants::float_type, const Uint8, const Uint8);
 	Uint8 getAlpha(void) const;
 private:
-	Counter counter;
-	float alphaf;
-	float da;
-	Uint8 alpha;
-	Uint8 alphaEnd;
+	float alpha;	// current alpha
+	float dAlpha;	// change in alpha per second
+	float timeRem;	// remaining time
 };
 
 
@@ -163,12 +160,8 @@ Counter& Counter::operator++() {
 	return *this;
 }
 
-inline
-AlphaFade::AlphaFade() : counter(0), alphaf(alpha), da(0), alpha(SDL_ALPHA_OPAQUE), alphaEnd(alpha) {
-}
-
 
 inline
 Uint8 AlphaFade::getAlpha() const {
-	return alpha;
+	return static_cast<Uint8>(alpha);
 }

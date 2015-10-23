@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"
 #include "creature_type.h"
 #include "json_reader.h"
 #include "sdl_header.h"
@@ -38,7 +39,7 @@ class CreatureManager {
 public:
 	CreatureManager(Player*, Room*);
 	~CreatureManager();
-	void update(void);
+	void update(const Constants::float_type);
 	void draw(Canvas&);
 	KillableGameEntity* getTarget(void);
 	Room* getRoom(void);

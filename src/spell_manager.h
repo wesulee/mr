@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"
 #include "shapes.h"
 #include "spell_type.h"
 #include <list>
@@ -19,7 +20,7 @@ class SpellManager {
 public:
 	SpellManager();
 	~SpellManager();
-	void update(void);
+	void update(const Constants::float_type);
 	void drawPlayerSpell(Canvas&);
 	void selectSpell(const SpellType);
 	void press(void);
@@ -28,6 +29,7 @@ public:
 private:
 	void updateSpellPos(void);
 	Spell* newSpellBasic(void);
+
 	SpellType selected = SpellType::NONE;
 	Spell* spell = nullptr;
 	std::shared_ptr<Image> spellImg;	// Image associated with spell

@@ -13,7 +13,7 @@ class InitialScreen : public GameState {
 public:
 	InitialScreen(std::shared_ptr<StateContext>);
 	~InitialScreen();
-	void update(void) override;
+	void update(const Constants::float_type) override;
 	void draw(Canvas&) override;
 	void entered(void) override;
 	void leaving(const StateType, std::shared_ptr<StateContext>) override;

@@ -6,6 +6,7 @@
 #include "input_handler.h"
 #include "sdl_helper.h"
 #include "settings.h"
+#include "utility.h"	// q
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -63,8 +64,8 @@ bool Game::init(const Settings& settings) {
 			}
 		}
 		if (rendererIndex == -1) {
-			Console::begin() << "The renderer \"" << rendererPref.first
-			                 << "\" is not available. Will use default renderer instead." << std::endl;
+			Console::begin() << "The renderer " << q(rendererPref.first)
+			                 << " is not available. Will use default renderer instead." << std::endl;
 		}
 	}
 	SDL::renderer = SDL::createRenderer(SDL::window, rendererIndex, 0);
@@ -72,7 +73,7 @@ bool Game::init(const Settings& settings) {
 	std::string rendererFlags = SDL::rendererFlagsToString(renInfo.flags);
 	if (rendererFlags.empty())
 		rendererFlags = "none";
-	Console::begin() << "renderer: \"" << renInfo.name << "\" flags: " << rendererFlags << std::endl;
+	Console::begin() << "renderer: " << q(renInfo.name) << " flags: " << rendererFlags << std::endl;
 	// set target texture support flag
 	SDL::targetTextureSupport = ((renInfo.flags & SDL_RENDERER_TARGETTEXTURE) != 0);
 	if (!SDL::targetTextureSupport)
@@ -96,23 +97,26 @@ void Game::run() {
 	// begin initial GameState
 	stateManager.push(StateType::INIT);
 	stateManager.processEvents();
+	const Constants::float_type dt = (1.0 / 60);
+	Constants::float_type elapse;
 	bool running = true;
 	while (running) {
 		startTime = SDL_GetTicks();
 		GameData::instance().time = startTime;
 
 		eventManager.process();
-		stateManager.top()->update();
+		stateManager.top()->update(dt);
 		draw();
 		canvas.present();
 		stateManager.processEvents();
 		running = !stateManager.empty();
 		
 		elapseTime = SDL_GetTicks() - startTime;
-		if (elapseTime > Constants::frameDuration)
-			delayTime = Constants::frameDuration / 2;	// sleep anyway
+		elapse = static_cast<Constants::float_type>(elapseTime) / 1000;
+		if (elapse > dt)
+			delayTime = static_cast<Uint32>(dt / 2 * 1000);	// sleep anyway
 		else
-			delayTime = Constants::frameDuration - elapseTime;
+			delayTime = static_cast<Uint32>((dt - elapse) * 1000);
 		SDL_Delay(delayTime);
 	}
 }

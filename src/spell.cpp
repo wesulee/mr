@@ -1,14 +1,12 @@
 #include "spell.h"
-#include "constants.h"
+#include "utility.h"
 #include "vfx_fade.h"
+#include <cassert>
 #include <cmath>	// sqrt
 
 
-unsigned int Spell::fadeTicks = 1;	// default value, set in SpellManager
-
-
 Spell::Spell() : fade(new VFXFade) {
-	fade->setFade(SDL_ALPHA_OPAQUE, SDL_ALPHA_TRANSPARENT, fadeTicks);
+	fade->setFade(Constants::SMFadeDur, SDL_ALPHA_OPAQUE, SDL_ALPHA_TRANSPARENT);
 }
 
 
@@ -20,18 +18,19 @@ Spell::~Spell() {
 }
 
 
-bool Spell::update() {
-	if (counter.finished()) {
+bool Spell::update(const Constants::float_type dt) {
+	if ((timeRem - dt) <= 0) {
+		pos += (vel * timeRem);
 		pos.x = correctFloat(pos.x);
 		pos.y = correctFloat(pos.y);
+		timeRem = 0;
 		return true;
 	}
 	else {
-		pos += dpos;
-		counter.increment();
+		pos += (vel * dt);
+		timeRem -= dt;
 		return false;
-	}
-}
+	}}
 
 
 void Spell::setPosX(const int x) {
@@ -44,22 +43,19 @@ void Spell::setPosY(const int y) {
 }
 
 
-// speed is pixels per second
+// this assumes that current position is integer
+// speed is distance per second
 void Spell::setEndPos(const int x, const int y, const Constants::float_type speed) {
 	fade->setOffset(x, y);	// needs to be updated in subclass
-	const Constants::float_type dist = std::sqrt(
-		square(static_cast<Constants::float_type>(x) - pos.x)
-		+ square(static_cast<Constants::float_type>(y) - pos.y)
-	);
-	const Constants::float_type ms = dist / speed * 1000;
-	const int ticks = static_cast<int>(std::ceil(ms / Constants::frameDurationFloat));
-	dpos.x = (static_cast<Constants::float_type>(x) - pos.x) / ticks;
-	dpos.y = (static_cast<Constants::float_type>(y) - pos.y) / ticks;
-	counter.setMaxTicks(static_cast<unsigned int>(ticks));
-	counter.reset();
-}
-
-
-void Spell::setFadeTicks(const unsigned int n) {
-	fadeTicks = n;
+	Vector2D<> deltaPos{
+		static_cast<Constants::float_type>(x - static_cast<int>(pos.x)),
+		static_cast<Constants::float_type>(y - static_cast<int>(pos.y))
+	};
+	timeRem = deltaPos.length() / speed;
+	if (timeRem == 0) {
+		vel = Vector2D<>{0, 0};
+	}
+	else {
+		vel = deltaPos / timeRem;
+	}
 }
