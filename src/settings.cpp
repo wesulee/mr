@@ -5,6 +5,7 @@
 #include "ini_parser.h"
 #include "logger.h"
 #include "sdl_helper.h"
+#include "utility.h"	// q
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
@@ -42,6 +43,19 @@ void setFlag(const IniParser::ValueMap& map, const char* name, T& bitset, std::s
 		if (val)
 			bitset.set(index, *val);
 	}
+}
+
+
+template<class T>
+int readInt(const T& map, const std::string& key) {
+	auto it = map.find(key);
+	if (it == map.end()) {
+		Logger::instance().log("ini file missing key " + q(key));
+		throw SettingsException{true};
+	}
+	const int val = std::stoi(it->second);
+	//! TODO validate val
+	return val;
 }
 
 
@@ -151,6 +165,8 @@ void procIni(Settings& settings) {
 	it = iniMap.find("Renderer");
 	if (it != iniMap.end())
 		settings.renderer = it->second;
+	settings.minFPS = readInt(iniMap, "MinFPS");
+	settings.maxFPS = readInt(iniMap, "MaxFPS");
 	setFlag(iniMap, "Vsync", settings.flags, toIndex(Index::VSYNC));
 	setFlag(iniMap, "DisplayFPS", settings.flags, toIndex(Index::DISPLAYFPS));
 	setFlag(iniMap, "PauseFocusLost", settings.flags, toIndex(Index::PAUSEFOCUSLOST));

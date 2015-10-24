@@ -38,6 +38,8 @@ public:
 	std::string savePath;
 	std::string renderer;	// name of renderer to use
 	std::bitset<8> flags;
+	int minFPS;
+	int maxFPS;
 	bool exitFlag = false;	// exit immediately after constructor?
 };
 
