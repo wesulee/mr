@@ -1,19 +1,21 @@
 #include "game.h"
 #include "console.h"
-#include "constants.h"
 #include "game_data.h"
 #include "game_state.h"
 #include "input_handler.h"
-#include "sdl_helper.h"
 #include "settings.h"
 #include "utility.h"	// q
-#include <cstdint>
-#include <cstring>
+#include <algorithm>	// max
+#include <cassert>
+#include <cmath>	// ceil
+#include <cstring>	// strcmp
 #include <iostream>
 
 
+// NOTE: Settings should be destroyed and set to nullptr before returning
 Game::Game(Settings*& settings) {
-	// NOTE: Settings should be destroyed and set to nullptr
+	dtMin = static_cast<Constants::float_type>(1.0 / settings->maxFPS);
+	dtMax = static_cast<Constants::float_type>(1.0 / settings->minFPS);
 	GameData::instance().setDataPath(settings->dataPath);
 	GameData::instance().setSavePath(settings->savePath);
 	// update GameSettings
@@ -92,33 +94,63 @@ void Game::quit() {
 }
 
 
+// Variable time-step (dt, with fixed min/max).
+// Game progresses at constant time, unless FPS drops below a threshold.
 void Game::run() {
-	uint32_t startTime, elapseTime, delayTime;
 	// begin initial GameState
 	stateManager.push(StateType::INIT);
 	stateManager.processEvents();
-	const Constants::float_type dt = (1.0 / 60);
-	Constants::float_type elapse;
-	bool running = true;
-	while (running) {
-		startTime = SDL_GetTicks();
-		GameData::instance().time = startTime;
 
-		eventManager.process();
-		stateManager.top()->update(dt);
+	Uint32 prevTime;
+	Uint32 curTime;
+	Uint32 elapseTime;
+	Constants::float_type elapse;
+	int frameSkip;
+	bool running = true;
+	prevTime = SDL_GetTicks();
+	while (running) {
+		frameSkip = 0;
+		curTime = SDL_GetTicks();
+		elapseTime = (curTime - prevTime);
+		elapse = static_cast<Constants::float_type>(elapseTime) / 1000;
+		while (elapse < dtMin) {
+			// running too fast
+			// while loop rather than just an if because for some reason one
+			//   call to SDL_Delay sometimes isn't enough
+			SDL_Delay(std::max(
+				static_cast<Uint32>(1),
+				static_cast<Uint32>(std::ceil((dtMin - elapse) * 1000))
+			));
+			curTime = SDL_GetTicks();
+			elapseTime = (curTime - prevTime);
+			elapse = static_cast<Constants::float_type>(elapseTime) / 1000;
+		}
+		prevTime = curTime;
+		if (elapse > dtMax) {
+			// running too slow
+			do {
+				update(dtMax, SDL_GetTicks());
+				elapse -= dtMax;
+				++frameSkip;
+			}
+			while ((elapse > dtMax) && (frameSkip < Constants::maxFrameSkip));
+		}
+		else {
+			assert(elapse >= dtMin);
+			update(elapse, curTime);
+		}
 		draw();
 		canvas.present();
 		stateManager.processEvents();
 		running = !stateManager.empty();
-		
-		elapseTime = SDL_GetTicks() - startTime;
-		elapse = static_cast<Constants::float_type>(elapseTime) / 1000;
-		if (elapse > dt)
-			delayTime = static_cast<Uint32>(dt / 2 * 1000);	// sleep anyway
-		else
-			delayTime = static_cast<Uint32>((dt - elapse) * 1000);
-		SDL_Delay(delayTime);
 	}
+}
+
+
+void Game::update(const Constants::float_type dt, const Uint32 cTime) {
+	eventManager.process();
+	GameData::instance().time = cTime;
+	stateManager.top()->update(dt);
 }
 
 

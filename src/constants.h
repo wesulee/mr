@@ -12,6 +12,7 @@ namespace Constants {
 	constexpr int windowHeight = 324;
 	constexpr int roomWidth = 32 * 18;
 	constexpr int roomHeight = 32 * 9;
+	constexpr int maxFrameSkip = 3;
 	constexpr float floatInc = 0.01;
 	constexpr char loggerFName[] = "errors.txt";
 	constexpr char iniFileName[] = "mr.ini";
