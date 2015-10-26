@@ -35,7 +35,6 @@ public:
 	virtual ~GameEntity() {}
 	virtual SDL_Rect getBounds(void) const = 0;
 	Vector2D<> getPos(void) const;
-	virtual void updatePos(const float, const float) = 0;
 	virtual void setPos(const Vector2D<>&);
 protected:
 	Vector2D<> entityPos;

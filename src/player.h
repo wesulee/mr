@@ -45,7 +45,6 @@ public:
 	EntityResource* loadResource(void) override;
 	void unloadResource(EntityResource*) override;
 	SDL_Rect getBounds(void) const override;
-	void updatePos(const float, const float) override;
 	void damage(const int) override;
 	void setDirection(const int);
 	void setSaveData(SaveData&) const;

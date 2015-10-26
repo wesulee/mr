@@ -114,12 +114,6 @@ SDL_Rect Player::getBounds() const {
 }
 
 
-void Player::updatePos(const float dx, const float dy) {
-	entityPos.x += dx;
-	entityPos.y += dy;
-}
-
-
 void Player::damage(const int d) {
 	decHealth(d);
 	healthBar.set(entityHealth);
