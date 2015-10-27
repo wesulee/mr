@@ -84,10 +84,6 @@ GameMenu::~GameMenu() {
 }
 
 
-void GameMenu::update(const Constants::float_type) {
-}
-
-
 void GameMenu::draw(Canvas& can) {
 	can.draw(*background);
 	can.setColor(COLOR_BLACK, getAlpha<20>());

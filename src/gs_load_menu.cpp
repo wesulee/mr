@@ -48,10 +48,6 @@ LoadMenu::~LoadMenu() {
 }
 
 
-void LoadMenu::update(const Constants::float_type) {
-}
-
-
 void LoadMenu::draw(Canvas& can) {
 	can.setColor(LoadMenuSettings::bgColor, SDL_ALPHA_OPAQUE);
 	can.clearScreen();

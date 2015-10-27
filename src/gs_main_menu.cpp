@@ -84,10 +84,6 @@ MainMenu::~MainMenu() {
 }
 
 
-void MainMenu::update(const Constants::float_type) {
-}
-
-
 void MainMenu::draw(Canvas& can) {
 	can.setColor(COLOR_BLACK);
 	can.clearScreen();

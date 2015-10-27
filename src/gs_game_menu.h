@@ -13,7 +13,6 @@ class GameMenu : public GameState {
 public:
 	GameMenu(std::shared_ptr<StateContext>);
 	~GameMenu();
-	void update(const Constants::float_type) override;
 	void draw(Canvas&) override;
 	void entered(void) override;
 	void leaving(const StateType, std::shared_ptr<StateContext>) override;

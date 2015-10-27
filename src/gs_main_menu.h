@@ -9,7 +9,6 @@ class MainMenu : public GameState {
 public:
 	MainMenu(std::shared_ptr<StateContext>);
 	~MainMenu();
-	void update(const Constants::float_type) override;
 	void draw(Canvas&) override;
 	void entered(void) override;
 	void leaving(const StateType, std::shared_ptr<StateContext>) override;

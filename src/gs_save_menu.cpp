@@ -95,10 +95,6 @@ SaveMenu::~SaveMenu() {
 }
 
 
-void SaveMenu::update(const Constants::float_type) {
-}
-
-
 void SaveMenu::draw(Canvas& can) {
 	can.setColor(SaveMenuSettings::bgColor, SDL_ALPHA_OPAQUE);
 	can.clearScreen();

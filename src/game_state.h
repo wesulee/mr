@@ -18,7 +18,7 @@ public:
 	GameState(const StateType, std::shared_ptr<StateContext>);
 	virtual ~GameState() {}
 	// time delta in seconds
-	virtual void update(const Constants::float_type) = 0;
+	virtual void update(const Constants::float_type);
 	virtual void draw(Canvas&) = 0;
 	virtual StateType getType() const final;
 	// called once, after created and becomes primary state
@@ -40,6 +40,11 @@ private:
 inline
 GameState::GameState(const StateType t, std::shared_ptr<StateContext> sc) : state(t) {
 	(void)sc;
+}
+
+
+inline
+void GameState::update(const Constants::float_type) {
 }
 
 
