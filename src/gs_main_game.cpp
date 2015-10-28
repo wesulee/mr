@@ -38,7 +38,6 @@ MainGame::MainGame(std::shared_ptr<StateContext> sc) : GameState(StateType::GAME
 	objects._VFXManager = &vfxm;
 	GameData::instance().mgo = &objects;
 
-	sm.setPlayer(&player);
 	am.setCreatureManager(&cm);
 
 	// check if new game
@@ -66,7 +65,6 @@ MainGame::~MainGame() {
 void MainGame::update(const Constants::float_type dt) {
 	player.setDirection(playerDirection);
 	player.update(dt);
-	sm.update(dt);
 	(this->*updateFunc)(dt);
 }
 
@@ -76,7 +74,6 @@ void MainGame::draw(Canvas& can) {
 	can.clearScreen();
 	room.draw(can);
 	player.draw(can);
-	sm.drawPlayerSpell(can);
 	(this->*drawFunc)(can);
 }
 
@@ -146,10 +143,10 @@ void MainGame::obscureToMenu(std::shared_ptr<StateContext> sc) {
 void MainGame::mouseCallbackRunning(const MouseEventType e) {
 	switch (e) {
 	case MouseEventType::PRESSED:
-		sm.press();
+		player.mousePress();
 		break;
 	case MouseEventType::RELEASED:
-		sm.release();
+		player.mouseRelease();
 		break;
 	case MouseEventType::MOVED:
 		break;
@@ -160,10 +157,10 @@ void MainGame::mouseCallbackRunning(const MouseEventType e) {
 void MainGame::mouseCallbackCleared(const MouseEventType e) {
 	switch (e) {
 	case MouseEventType::PRESSED:
-		sm.press();
+		player.mousePress();
 		break;
 	case MouseEventType::RELEASED:
-		sm.release();
+		player.mouseRelease();
 		break;
 	case MouseEventType::MOVED:
 		map.notifyMoved();

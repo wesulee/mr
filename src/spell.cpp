@@ -30,16 +30,13 @@ bool Spell::update(const Constants::float_type dt) {
 		pos += (vel * dt);
 		timeRem -= dt;
 		return false;
-	}}
-
-
-void Spell::setPosX(const int x) {
-	pos.x = static_cast<Constants::float_type>(x);
+	}
 }
 
 
-void Spell::setPosY(const int y) {
-	pos.y = static_cast<Constants::float_type>(y);
+void Spell::setPos(const SDL_Rect& entityRect, const int offsetY) {
+	pos.x = static_cast<Constants::float_type>(entityRect.x + (entityRect.w / 2));
+	pos.y = static_cast<Constants::float_type>(entityRect.y - getRadius() + offsetY);
 }
 
 

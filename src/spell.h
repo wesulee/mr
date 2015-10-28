@@ -1,6 +1,7 @@
 #pragma once
 
 #include "attack.h"
+#include "sdl_helper.h"		// SDL_Rect
 #include "utility_struct.h"
 
 
@@ -15,13 +16,19 @@ public:
 	~Spell();
 	bool update(const Constants::float_type) override;
 	virtual void chargeTick(const Constants::float_type) = 0;
-	void setPosX(const int);
-	void setPosY(const int);
+	void setPos(const SDL_Rect&, const int);
 	void setEndPos(const int, const int, const Constants::float_type);
-	virtual int getRadius(void) const = 0;
+	int getRadius(void) const;
 protected:
 	Vector2D<> pos;
 	Vector2D<> vel;	// velocity
-	float timeRem;
 	VFXFade* fade;
+	Constants::float_type timeRem;
+	Constants::float_type radius;
 };
+
+
+inline
+int Spell::getRadius() const {
+	return static_cast<int>(radius);
+}

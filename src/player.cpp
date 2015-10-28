@@ -7,9 +7,16 @@
 #include "room.h"
 #include "save_data.h"
 #include "sdl_header.h"
+#include "spell.h"
+#include "spell_manager.h"
 #include "sprite_sheet.h"
 #include <cassert>
 #include <cmath>
+
+
+namespace PlayerSettings {
+	constexpr int spellOffsetY = -8;
+}
 
 
 class PlayerResource : public EntityResource {
@@ -45,12 +52,14 @@ Player::Player()
 
 
 Player::~Player() {
+	if (spell != nullptr)
+		delete spell;
 	GameData::instance().resources->freeEntity(this, EntityResourceID::PLAYER);
 }
 
 
 bool Player::update(const Constants::float_type dt) {
-	const Constants::float_type delta = speed * dt;
+	const Constants::float_type delta = (speed * dt);
 	if (moving) {
 		switch (direction) {
 		case PlayerDirection::NONE:
@@ -89,6 +98,10 @@ bool Player::update(const Constants::float_type dt) {
 			break;
 		}
 	}
+	if (spell != nullptr) {
+		spell->chargeTick(dt);
+		updateSpellPos();
+	}
 	return false;
 }
 
@@ -96,6 +109,24 @@ bool Player::update(const Constants::float_type dt) {
 void Player::draw(Canvas& can) {
 	healthBar.draw(can);
 	can.draw(ms, static_cast<int>(entityPos.x), static_cast<int>(entityPos.y));
+	if (spell != nullptr)
+		spell->draw(can);
+}
+
+
+void Player::mousePress() {
+	if (spell == nullptr) {
+		spell = GameData::instance().mgo->getSpellManager().newPlayerSpell(spellType);
+		updateSpellPos();
+	}
+}
+
+
+void Player::mouseRelease() {
+	if (spell != nullptr) {
+		GameData::instance().mgo->getSpellManager().playerRelease(spell);
+		assert(spell == nullptr);
+	}
 }
 
 
@@ -188,4 +219,11 @@ void Player::getSaveData(const SaveData& data) {
 
 void Player::move(const Constants::float_type dx, const Constants::float_type dy) {
 	 GameData::instance().mgo->getRoom().update(*this, Vector2D<>{dx, dy});
+	 // update spell pos in update()
+}
+
+
+void Player::updateSpellPos() {
+	assert(spell != nullptr);
+	spell->setPos(getBounds(), PlayerSettings::spellOffsetY);
 }

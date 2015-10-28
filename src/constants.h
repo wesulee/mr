@@ -43,7 +43,6 @@ namespace Constants {
 	constexpr std::size_t RoomQTreeNodeCap = 8;
 	// SpellManager
 	constexpr float SMTravelSpeed = 500.0f;	// pixels per second spell travel
-	constexpr int SMPlayerOffset = -8;		// drawing offset of active Spell
 	constexpr float SMFadeDur = 0.130;		// fadeout duration
 	constexpr float SMFadeRadMult = 1.6;	// fadeout radius multiplier
 	constexpr int SPELL_RENDER_RADIUS = 32;

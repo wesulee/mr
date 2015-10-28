@@ -10,17 +10,14 @@ class Image;
 // Once released, pass to AttackManager
 class SpellBasic : public Spell {
 public:
-	SpellBasic();
-	~SpellBasic();
+	SpellBasic(Image*);
+	~SpellBasic() {/* do nothing */}
 	bool update(const Constants::float_type) override;
 	void draw(Canvas&) override;
 	void init(const int, const int, const Constants::float_type);
 	void chargeTick(const Constants::float_type) override;
-	int getRadius(void) const override;
-	static void setImage(Image*);
 private:
-	Constants::float_type radius;
+	Image* image;
 	Constants::float_type dradius;	// radius growth per second
 	int radiusLimit;
-	static Image* img;
 };

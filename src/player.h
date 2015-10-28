@@ -3,6 +3,7 @@
 #include "entity.h"
 #include "health_bar_player.h"
 #include "multistate_sprite.h"
+#include "spell_type.h"
 #include <cstddef>	// size_t
 
 
@@ -15,6 +16,7 @@
 
 
 class SaveData;
+class Spell;
 
 
 enum class PlayerDirection {NONE, N, E, S, W, NE, SE, SW, NW};
@@ -41,6 +43,8 @@ public:
 	~Player();
 	bool update(const Constants::float_type) override;
 	void draw(Canvas&) override;
+	void mousePress(void);
+	void mouseRelease(void);
 	// Entity methods
 	EntityResource* loadResource(void) override;
 	void unloadResource(EntityResource*) override;
@@ -51,9 +55,12 @@ public:
 	void getSaveData(const SaveData&);
 private:
 	void move(const Constants::float_type, const Constants::float_type);
+	void updateSpellPos(void);
 
 	PlayerHealthBar healthBar;
 	MultistateSprite ms;
+	Spell* spell = nullptr;
+	SpellType spellType = SpellType::BASIC;
 	PlayerDirection direction = PlayerDirection::NONE;
 	Constants::float_type speed;	// max dist traveled in one direction per second
 	bool moving = false;

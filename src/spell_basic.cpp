@@ -10,22 +10,15 @@
 #include <cassert>
 
 
-Image* SpellBasic::img = nullptr;
-
-
-SpellBasic::SpellBasic() : radius(5), dradius(0), radiusLimit(5) {
-}
-
-
-SpellBasic::~SpellBasic() {
-	// do nothing
+SpellBasic::SpellBasic(Image* img) : image(img), dradius(0), radiusLimit(5) {
+	radius = radiusLimit;
 }
 
 
 bool SpellBasic::update(const Constants::float_type dt) {
 	if (Spell::update(dt)) {
 		const int fadeRad = static_cast<int>(radius * Constants::SMFadeRadMult);
-		fade->setImage(img, fadeRad * 2, fadeRad * 2);
+		fade->setImage(image, fadeRad * 2, fadeRad * 2);
 		// center the fade
 		fade->setOffset(
 			fade->getOffsetX() - fadeRad,
@@ -49,11 +42,11 @@ bool SpellBasic::update(const Constants::float_type dt) {
 
 
 void SpellBasic::draw(Canvas& can) {
-	assert(img != nullptr);
+	assert(image != nullptr);
 	const int radiusInt = getRadius();
-	img->setWidth(radiusInt * 2);
-	img->setHeight(radiusInt * 2);
-	can.draw(*img, static_cast<int>(pos.x) - radiusInt, static_cast<int>(pos.y) - radiusInt);
+	image->setWidth(radiusInt * 2);
+	image->setHeight(radiusInt * 2);
+	can.draw(*image, static_cast<int>(pos.x) - radiusInt, static_cast<int>(pos.y) - radiusInt);
 }
 
 
@@ -75,15 +68,4 @@ void SpellBasic::chargeTick(const Constants::float_type dt) {
 		if (radiusInt > radiusLimit)
 			radius = radiusLimit;
 	}
-}
-
-
-int SpellBasic::getRadius() const {
-	return static_cast<int>(radius);
-}
-
-
-void SpellBasic::setImage(Image* i) {
-	assert(i != nullptr);
-	img = i;
 }
