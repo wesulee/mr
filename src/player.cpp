@@ -107,7 +107,6 @@ bool Player::update(const Constants::float_type dt) {
 
 
 void Player::draw(Canvas& can) {
-	healthBar.draw(can);
 	can.draw(ms, static_cast<int>(entityPos.x), static_cast<int>(entityPos.y));
 	if (spell != nullptr)
 		spell->draw(can);

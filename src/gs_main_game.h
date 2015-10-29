@@ -3,6 +3,7 @@
 #include "game_state.h"
 #include "sdl_helper.h"
 // Game components
+#include "game_interface.h"
 #include "creature_manager.h"
 #include "player.h"
 #include "attack_manager.h"
@@ -47,6 +48,7 @@ private:
 	AttackManager am;
 	VFXManager vfxm;
 	Map map;
+	GameInterface gi;
 	MainGameObjects objects;
 	SDL_Keycode playerDirKeys[4];	// N, E, S, W
 	int playerDirection = PLAYER_DIR_NONE;

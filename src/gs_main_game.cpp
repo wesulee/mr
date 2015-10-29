@@ -39,6 +39,7 @@ MainGame::MainGame(std::shared_ptr<StateContext> sc) : GameState(StateType::GAME
 	GameData::instance().mgo = &objects;
 
 	am.setCreatureManager(&cm);
+	gi.init();
 
 	// check if new game
 	if (sc->mIntInt.count(Parameters::NEW_GAME)) {
@@ -73,6 +74,7 @@ void MainGame::draw(Canvas& can) {
 	can.setColor(COLOR_BLACK, SDL_ALPHA_OPAQUE);
 	can.clearScreen();
 	room.draw(can);
+	gi.draw(can);
 	player.draw(can);
 	(this->*drawFunc)(can);
 }

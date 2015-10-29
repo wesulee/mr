@@ -45,6 +45,7 @@ public:
 	void draw(Canvas&) override;
 	void mousePress(void);
 	void mouseRelease(void);
+	HealthBar* getHealthBar(void);
 	// Entity methods
 	EntityResource* loadResource(void) override;
 	void unloadResource(EntityResource*) override;
@@ -65,3 +66,9 @@ private:
 	Constants::float_type speed;	// max dist traveled in one direction per second
 	bool moving = false;
 };
+
+
+inline
+HealthBar* Player::getHealthBar() {
+	return &healthBar;
+}
